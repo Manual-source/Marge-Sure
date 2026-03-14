@@ -1,0 +1,315 @@
+MargeSure 
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MARGE-SÛRE PRO : EXPERT BÂTIMENT</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root { 
+            --p: #0A84FF; --bg: #000; --card: #1C1C1E; 
+            --green: #32D74B; --red: #FF453A; --blue: #0A84FF; 
+            --orange: #FF9500; --gray: #8E8E93; 
+        }
+        .theme-plombier { --p: #0A84FF; }
+        .theme-elec { --p: #FFCC00; }
+        .theme-peintre { --p: #32D74B; }
+
+        * { -webkit-user-select: none; box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; touch-action: manipulation; }
+        input, select, textarea { -webkit-user-select: text !important; outline: none; }
+        body { background-color: var(--bg); color: white; margin: 0; padding: env(safe-area-inset-top) 15px 140px 15px; transition: background 0.3s; }
+
+        .card { background: var(--card); padding: 20px; border-radius: 22px; margin-bottom: 12px; border: 1px solid #2C2C2E; position: relative; }
+        .net-display { font-size: 38px; font-weight: 900; color: var(--green); letter-spacing: -1px; margin: 5px 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        .info-bubble { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #3A3A3C; color: white; border-radius: 50%; font-size: 11px; font-weight: bold; margin-left: 6px; cursor: pointer; }
+
+        .grid-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+        .tab { padding: 12px 18px; border-radius: 14px; background: #2C2C2E; color: var(--gray); font-size: 11px; font-weight: 800; border: none; min-width: 100px; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
+        .tab.active { background: var(--p); color: #000; }
+        
+        input, select { width: 100%; background: #2C2C2E; padding: 15px; border-radius: 12px; color: white; border: 1px solid #3A3A3C; font-size: 16px; height: 55px; }
+        label { display: flex; align-items: center; color: var(--gray); font-size: 10px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; }
+        .sub-label { font-size: 9px; color: var(--p); font-weight: 600; margin-bottom: 8px; display: block; }
+
+        .btn-main { background: var(--p); color: #000; border: none; padding: 20px; border-radius: 18px; font-size: 14px; font-weight: 900; text-transform: uppercase; width: 100%; cursor: pointer; }
+        .btn-add { background: var(--p); color: #000; border-radius: 12px; padding: 0 15px; border: none; font-weight: 900; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .photo-box { background: #2C2C2E; border-radius: 15px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; overflow: hidden; position: relative; border: 1px dashed #444; cursor: pointer; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; pointer-events: none; }
+        .btn-del-photo { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 10; }
+
+        .folder-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #1C1C1E; border-radius: 20px; margin-bottom: 10px; border: 1px solid #333; border-left: 5px solid var(--p); cursor: pointer; }
+        .status-badge { font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; margin-top: 4px; display: inline-block; }
+        .paid { background: rgba(50, 215, 75, 0.2); color: var(--green); }
+        .unpaid { background: rgba(255, 69, 58, 0.2); color: var(--red); }
+
+        .action-bar { position: fixed; bottom: 30px; left: 15px; right: 15px; display: flex; gap: 10px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 25px; backdrop-filter: blur(10px); }
+
+        .print-only { display: none; }
+
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .card { border: 1px solid #ccc; background: white; break-inside: avoid; margin-bottom: 20px; padding: 15px; }
+            .btn-main, .action-bar, .btn-add, .tab, #lock-screen, .info-bubble, .btn-del-photo, button, .pay-toggle-container { display: none !important; }
+            input, select { border: none; background: white; color: black; padding: 5px; font-size: 14px; height: auto; }
+            .print-only { display: block !important; text-align: center; font-size: 28px; font-weight: 900; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        }
+    </style>
+</head>
+<body class="theme-plombier">
+
+    <div id="lock-screen" style="text-align: center; padding-top: 100px;">
+        <div style="font-size:35px; font-weight:900; color:white; margin-bottom:10px;">MARGE<span style="color:var(--p)">SÛRE</span></div>
+        <div id="id-display" style="background:#1C1C1E; padding:10px; border-radius:12px; color:var(--p); font-weight:bold; margin: 0 40px 20px 40px; border:1px solid #333;">ID : ...</div>
+        <input type="number" id="keyIn" placeholder="CLÉ D'ACCÈS ARTISAN" style="width: 80%; text-align: center;">
+        <button class="btn-main" onclick="unlock()" style="width: 80%; margin-top:15px;">DÉVERROUILLER</button>
+    </div>
+
+    <div id="app" style="display:none;">
+        <div id="view-folders">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:20px;">
+                <h2 style="margin:0;">📂 MES CHANTIERS</h2>
+                <button onclick="toggleSetup()" style="background:var(--card); border:1px solid #333; padding:10px; border-radius:15px; color:var(--p); font-size:10px; font-weight:800;">⚙️ CONFIG</button>
+            </div>
+            <div id="folder-list"></div>
+            <button class="btn-main" style="background: var(--blue); color: white; margin-top: 20px;" onclick="createNewDossier()">+ NOUVEAU CHANTIER</button>
+        </div>
+
+        <div id="view-edit" style="display:none;">
+            <div id="print-header" class="print-only">MON ENTREPRISE</div>
+
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
+                <button onclick="saveAndQuit()" style="background:none; border:none; color:var(--p); font-weight:900;">⬅ RETOUR</button>
+                <div style="display:flex; align-items:center; gap:10px;" class="pay-toggle-container">
+                    <label style="margin:0; font-size:9px;">PAYÉ ?</label>
+                    <input type="checkbox" id="isPaid" onchange="calc()" style="width:30px; height:30px;">
+                </div>
+            </div>
+
+            <div class="header-audit" style="background: #1C1C1E; padding: 20px; border-radius: 20px; margin-bottom: 15px; text-align:center;">
+                <div id="res-net" class="net-display">0 €</div>
+                <div style="font-size:10px; font-weight:900; opacity:0.7;">BÉNÉFICE NET RÉEL</div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:15px; overflow-x: auto; padding-bottom:5px;">
+                <button id="tab-plombier" class="tab active" onclick="changeJob('plombier')">💧 PLOMBERIE</button>
+                <button id="tab-elec" class="tab" onclick="changeJob('elec')">⚡ ÉLEC</button>
+                <button id="tab-peintre" class="tab" onclick="changeJob('peintre')">🎨 PEINTURE</button>
+            </div>
+
+            <div class="card">
+                <label>👤 CLIENT & CHANTIER</label>
+                <input type="text" id="client" placeholder="Nom du client" oninput="calc()">
+                <div class="grid-compare" style="margin-top:10px;">
+                    <div><label>PRIX VENDU TTC</label><input type="number" id="ttc" oninput="calc()"></div>
+                    <div>
+                        <label>TVA VENTE</label>
+                        <select id="tva" onchange="calc()">
+                            <option value="1.10">10%</option>
+                            <option value="1.20">20%</option>
+                            <option value="1.055">5.5%</option>
+                            <option value="1.00">0%</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="job-module" class="card"></div>
+
+            <div class="card" style="border: 1px solid var(--p);">
+                <label>📦 MATÉRIEL TTC</label>
+                <div class="grid-compare">
+                    <input type="number" id="matos_prev" placeholder="Prévu" oninput="calc()">
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="matos_real" placeholder="Réel" oninput="calc()" style="flex:1">
+                        <button class="btn-add" onclick="addTicket()">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="grid-compare">
+                    <div><label>DURÉE (JOURS)</label><input type="number" id="jours" oninput="calc()"></div>
+                    <div><label>FRAIS DIVERS</label><input type="number" id="divers" oninput="calc()"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label>📸 PHOTOS</label>
+                <div class="photo-grid">
+                    <div class="photo-box" onclick="triggerPhoto('before')">
+                        <div id="img-before-label">📷 AVANT</div>
+                        <img id="img-before" style="display:none;">
+                        <button id="del-before" class="btn-del-photo" style="display:none;" onclick="deletePhoto(event, 'before')">✕</button>
+                    </div>
+                    <div class="photo-box" onclick="triggerPhoto('after')">
+                        <div id="img-after-label">📷 APRÈS</div>
+                        <img id="img-after" style="display:none;">
+                        <button id="del-after" class="btn-del-photo" style="display:none;" onclick="deletePhoto(event, 'after')">✕</button>
+                    </div>
+                </div>
+                <input type="file" id="photo-input" hidden accept="image/*">
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-main" style="background:#2C2C2E; color:white; flex:1;" onclick="preparePrint(); window.print()">📄 PDF</button>
+                <button class="btn-main" style="flex:2;" onclick="saveAndQuit()">💾 ENREGISTRER</button>
+            </div>
+        </div>
+
+        <div id="setup-view" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:4000; padding:30px;">
+            <h2 style="color:var(--p);">⚙️ CONFIGURATION</h2>
+            <label>NOM ENTREPRISE</label>
+            <input type="text" id="set-company" oninput="saveGlobal()" style="margin-bottom:15px;">
+            <div class="grid-compare">
+                <div><label>% URSSAF</label><input type="number" id="set-urssaf" value="21.2" oninput="saveGlobal()"></div>
+                <div><label>SALAIRE JOUR</label><input type="number" id="set-salaire" value="150" oninput="saveGlobal()"></div>
+            </div>
+            <button class="btn-main" onclick="toggleSetup()" style="margin-top:25px;">FERMER</button>
+        </div>
+    </div>
+
+    <script>
+        let currentId = null;
+        let activeJob = 'plombier';
+        let photos = { before: null, after: null };
+
+        window.onload = () => {
+            const deviceID = localStorage.getItem('ms_id') || Math.floor(Math.random()*899)+101;
+            localStorage.setItem('ms_id', deviceID);
+            document.getElementById('id-display').innerText = "ID : " + deviceID;
+            loadGlobal();
+            if(localStorage.getItem('ms_ok') === 'true') run();
+        };
+
+        function unlock() {
+            const k = document.getElementById('keyIn').value;
+            if(k === "061266" || k === "2026") { localStorage.setItem('ms_ok', 'true'); run(); }
+            else alert("Clé incorrecte");
+        }
+
+        function run() {
+            document.getElementById('lock-screen').style.display='none';
+            document.getElementById('app').style.display='block';
+            renderFolders();
+        }
+
+        function changeJob(j) {
+            activeJob = j;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + j).classList.add('active');
+            const mod = document.getElementById('job-module');
+            if(j === 'plombier') mod.innerHTML = `<label>💧 PLOMBERIE</label><div class="grid-compare"><div><label>Pts d'eau</label><input type="number" id="f1" oninput="calc()"></div><div><label>Mètres</label><input type="number" id="f2" oninput="calc()"></div></div>`;
+            else if(j === 'elec') mod.innerHTML = `<label>⚡ ÉLEC</label><div class="grid-compare"><div><label>Prises</label><input type="number" id="f1" oninput="calc()"></div><div><label>Tableau ?</label><input type="checkbox" id="f2" style="width:30px;height:30px" onchange="calc()"></div></div>`;
+            else mod.innerHTML = `<label>🎨 PEINTURE</label><div class="grid-compare"><div><label>Surface m²</label><input type="number" id="f1" oninput="calc()"></div><div><label>Couches</label><input type="number" id="f2" oninput="calc()"></div></div>`;
+            calc();
+        }
+
+        function calc() {
+            if(!currentId) return;
+            const ttc = parseFloat(document.getElementById('ttc').value) || 0;
+            const ht = ttc / (parseFloat(document.getElementById('tva').value) || 1);
+            const urssaf = ttc * ((parseFloat(document.getElementById('set-urssaf').value) || 0) / 100);
+            const matos = parseFloat(document.getElementById('matos_real').value) || 0;
+            const div = parseFloat(document.getElementById('divers').value) || 0;
+            const sal = (parseFloat(document.getElementById('set-salaire').value) || 0) * (parseFloat(document.getElementById('jours').value) || 0);
+            const net = ht - urssaf - matos - div - sal;
+            const res = document.getElementById('res-net');
+            res.innerText = Math.round(net) + " €";
+            res.style.color = net < 0 ? "var(--red)" : "var(--green)";
+            saveCurrent();
+        }
+
+        function triggerPhoto(type) {
+            const input = document.getElementById('photo-input');
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    photos[type] = event.target.result;
+                    document.getElementById('img-' + type).src = photos[type];
+                    document.getElementById('img-' + type).style.display = 'block';
+                    document.getElementById('del-' + type).style.display = 'flex';
+                    saveCurrent();
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        function deletePhoto(e, type) { e.stopPropagation(); photos[type] = null; document.getElementById('img-' + type).style.display = 'none'; document.getElementById('del-' + type).style.display = 'none'; saveCurrent(); }
+
+        function saveCurrent() {
+            if(!currentId) return;
+            const data = {
+                id: currentId, job: activeJob, name: document.getElementById('client').value,
+                ttc: document.getElementById('ttc').value, tva: document.getElementById('tva').value,
+                m_real: document.getElementById('matos_real').value, m_prev: document.getElementById('matos_prev').value,
+                jours: document.getElementById('jours').value, div: document.getElementById('divers').value,
+                isPaid: document.getElementById('isPaid').checked, photos: photos,
+                lastNet: document.getElementById('res-net').innerText, date: new Date().toLocaleDateString('fr-FR')
+            };
+            localStorage.setItem(currentId, JSON.stringify(data));
+            let f = JSON.parse(localStorage.getItem('ms_folders')) || [];
+            f = f.filter(x => x.id !== currentId);
+            f.unshift({id: data.id, name: data.name, lastNet: data.lastNet, isPaid: data.isPaid, date: data.date});
+            localStorage.setItem('ms_folders', JSON.stringify(f.slice(0, 10)));
+        }
+
+        function openDossier(id) {
+            currentId = id; const d = JSON.parse(localStorage.getItem(id));
+            changeJob(d.job || 'plombier');
+            document.getElementById('client').value = d.name || "";
+            document.getElementById('ttc').value = d.ttc || "";
+            document.getElementById('tva').value = d.tva || "1.10";
+            document.getElementById('matos_real').value = d.m_real || "";
+            document.getElementById('matos_prev').value = d.m_prev || "";
+            document.getElementById('jours').value = d.jours || "";
+            document.getElementById('divers').value = d.div || "";
+            document.getElementById('isPaid').checked = d.isPaid || false;
+            photos = d.photos || {before:null, after:null};
+            ['before','after'].forEach(t => { if(photos[t]) { document.getElementById('img-'+t).src = photos[t]; document.getElementById('img-'+t).style.display = 'block'; document.getElementById('del-'+t).style.display = 'flex'; } });
+            document.getElementById('view-folders').style.display='none';
+            document.getElementById('view-edit').style.display='block';
+            calc();
+        }
+
+        function renderFolders() {
+            const list = document.getElementById('folder-list');
+            const f = JSON.parse(localStorage.getItem('ms_folders')) || [];
+            list.innerHTML = f.map(i => `
+                <div class="folder-item" onclick="openDossier('${i.id}')">
+                    <div style="flex:1"><b>${i.name || 'Nouveau'}</b><br><small>${i.date}</small><br>
+                    <span class="status-badge ${i.isPaid?'paid':'unpaid'}">${i.isPaid?'PAYÉ ✓':'EN ATTENTE'}</span></div>
+                    <div style="font-weight:900; color:${i.lastNet.includes('-')?'var(--red)':'var(--green)'}">${i.lastNet}</div>
+                </div>
+            `).join('');
+        }
+
+        function createNewDossier() {
+            currentId = 'd_' + Date.now(); photos = {before:null, after:null};
+            document.querySelectorAll('#view-edit input').forEach(i => { if(i.type !== 'checkbox') i.value=""; else i.checked=false; });
+            document.getElementById('view-folders').style.display='none';
+            document.getElementById('view-edit').style.display='block';
+        }
+
+        function saveAndQuit() { saveCurrent(); document.getElementById('view-folders').style.display='block'; document.getElementById('view-edit').style.display='none'; renderFolders(); }
+        function toggleSetup() { const s = document.getElementById('setup-view'); s.style.display = s.style.display==='none'?'block':'none'; }
+        function loadGlobal() { const g = JSON.parse(localStorage.getItem('ms_global')); if(g) { document.getElementById('set-company').value=g.c || ""; document.getElementById('set-urssaf').value=g.u || 21.2; document.getElementById('set-salaire').value=g.s || 150; } }
+        function saveGlobal() { localStorage.setItem('ms_global', JSON.stringify({ c: document.getElementById('set-company').value, u: document.getElementById('set-urssaf').value, s: document.getElementById('set-salaire').value })); }
+        function addTicket() { const v = prompt("Montant TTC :"); if(v) { document.getElementById('matos_real').value = (parseFloat(document.getElementById('matos_real').value||0) + parseFloat(v.replace(',','.'))).toFixed(2); calc(); } }
+        function preparePrint() { document.getElementById('print-header').innerText = document.getElementById('set-company').value || "MON ENTREPRISE"; }
+    </script>
+</body>
+</html>
