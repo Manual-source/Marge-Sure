@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MARGESURE | LIFESAVER</title>
+    <style>
+        :root {
+            --bg: #09090b; --card: #18181b; --card-h: #27272a;
+            --accent: #3b82f6; --green: #10b981; --red: #ef4444; 
+            --orange: #f59e0b; --gray: #a1a1aa; --text: #f4f4f5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 100px; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+
+        /* HEADER PITCH */
+        .pitch-header { padding: 30px 0 20px; }
+        .pitch-header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .pitch-header p { color: var(--gray); font-size: 14px; font-weight: 500; margin-top: 5px; }
+        .badge-pro { background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; border: 1px solid rgba(59, 130, 246, 0.2); display: inline-block; margin-top: 10px; }
+
+        /* DASHBOARD DE LA VÉRITÉ */
+        .truth-board { background: var(--card); border-radius: 24px; padding: 25px; border: 1px solid #3f3f46; position: relative; overflow: hidden; margin-bottom: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .truth-title { font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+        .truth-value { font-size: 48px; font-weight: 900; color: var(--green); margin: 5px 0; letter-spacing: -2px; }
+        .truth-subtitle { font-size: 13px; font-weight: 600; color: var(--text); }
+        
+        .state-debt { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #3f3f46; display: flex; justify-content: space-between; align-items: center; }
+        .debt-box { text-align: left; }
+        .debt-box span { display: block; font-size: 11px; color: var(--gray); text-transform: uppercase; font-weight: 800; }
+        .debt-box b { font-size: 18px; color: var(--red); font-weight: 900; }
+
+        /* BOUTON CAMIONNETTE */
+        .van-button { width: 100%; background: linear-gradient(135deg, var(--accent), #2563eb); color: white; border: none; padding: 20px; border-radius: 20px; font-size: 16px; font-weight: 800; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; cursor: pointer; transition: 0.2s; }
+        .van-button:active { transform: scale(0.97); }
+
+        /* ANTI-OUBLI & CHANTIERS */
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .leak-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+        .leak-banner p { font-size: 13px; line-height: 1.4; }
+        .leak-banner b { color: var(--red); font-size: 16px; display: block; }
+
+        .job-card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 12px; border: 1px solid #27272a; display: flex; flex-direction: column; gap: 15px; }
+        .job-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .job-title { font-size: 16px; font-weight: 700; }
+        .job-subtitle { font-size: 12px; color: var(--gray); margin-top: 2px; }
+        .job-stats { display: flex; gap: 15px; background: #000; padding: 12px; border-radius: 12px; border: 1px solid #27272a; }
+        .job-stat-item { flex: 1; }
+        .job-stat-item span { font-size: 10px; color: var(--gray); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 2px; }
+        .job-stat-item b { font-size: 14px; }
+
+        /* MODAL NOUVEAU CHANTIER (LE FLUX RAPIDE) */
+        .modal { position: fixed; inset: 0; background: var(--bg); z-index: 1000; overflow-y: auto; display: none; padding-bottom: 50px; }
+        .modal-header { position: sticky; top: 0; background: rgba(9, 9, 11, 0.9); backdrop-filter: blur(10px); padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom: 1px solid #27272a; }
+        .modal-content { padding: 20px; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 8px; text-transform: uppercase; }
+        .input-group input, .input-group select { width: 100%; background: var(--card); border: 1px solid #3f3f46; color: white; padding: 16px; border-radius: 12px; font-size: 16px; outline: none; }
+        .input-group input:focus { border-color: var(--accent); }
+
+        .anti-oubli-box { background: rgba(245, 158, 11, 0.1); border: 1px dashed var(--orange); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .ao-title { color: var(--orange); font-size: 14px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .checkbox-row input { width: 20px; height: 20px; accent-color: var(--orange); }
+        .checkbox-row label { font-size: 14px; color: var(--text); font-weight: 500; text-transform: none; margin: 0; }
+        .checkbox-row input[type="number"] { width: 80px; padding: 8px; font-size: 14px; }
+
+        .action-btn { width: 100%; background: var(--green); color: #000; font-weight: 900; font-size: 16px; padding: 18px; border-radius: 16px; border: none; cursor: pointer; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div id="main-view">
+        <div class="container">
+            <header class="pitch-header">
+                <h1>Bonjour, Thomas 👋</h1>
+                <p>Ton entreprise de Plomberie est sécurisée.</p>
+                <div class="badge-pro">✓ URSSAF CONNECTÉ (Simulation)</div>
+            </header>
+
+            <div class="truth-board">
+                <div class="truth-title">Ton Reste à Vivre Réel (Net de Net)</div>
+                <div class="truth-value">4 250 €</div>
+                <div class="truth-subtitle">Tu peux te virer cette somme sans trembler.</div>
+
+                <div class="state-debt">
+                    <div class="debt-box">
+                        <span>Provision URSSAF</span>
+                        <b>1 840 €</b>
+                    </div>
+                    <div class="debt-box">
+                        <span>TVA à rendre</span>
+                        <b style="color: var(--orange);">920 €</b>
+                    </div>
+                </div>
+            </div>
+
+            <button class="van-button" onclick="openModal()">
+                <div>
+                    <span style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Fin de chantier</span>
+                    <span>Mode Camionnette 🚐</span>
+                </div>
+                <span style="font-size: 24px;">→</span>
+            </button>
+
+            <div class="leak-banner">
+                <span style="font-size: 30px;">🚨</span>
+                <p>Grâce à l'Anti-Oubli, tu as sauvé <b>+ 345 €</b> de fuites de rentabilité ce mois-ci.</p>
+            </div>
+
+            <h2 class="section-title">Derniers chantiers sécurisés</h2>
+            
+            <div id="jobs-list">
+                </div>
+        </div>
+    </div>
+
+    <div id="job-modal" class="modal">
+        <div class="modal-header">
+            <h3 style="font-size: 18px; font-weight: 800;">Boucler le chantier</h3>
+            <button onclick="closeModal()" style="background:none; border:none; color:var(--text); font-size:16px; font-weight:700;">Annuler</button>
+        </div>
+        <div class="modal-content">
+            
+            <div class="input-group">
+                <label>Nom du Client</label>
+                <input type="text" id="j-client" placeholder="Ex: Rénovation Salle de bain Dupont">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="input-group">
+                    <label>Devis TTC (€)</label>
+                    <input type="number" id="j-ttc" placeholder="0.00" oninput="simulateCalc()">
+                </div>
+                <div class="input-group">
+                    <label>TVA</label>
+                    <select id="j-tva" onchange="simulateCalc()">
+                        <option value="10">10% (Rénov)</option>
+                        <option value="20">20% (Standard)</option>
+                        <option value="5.5">5.5% (Énergie)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Facture Matériaux (Fournisseur)</label>
+                <input type="number" id="j-matos" placeholder="0.00" oninput="simulateCalc()">
+            </div>
+
+            <div class="anti-oubli-box">
+                <div class="ao-title">🛡️ Radar Anti-Oubli (Ne perds pas ta marge)</div>
+                <p style="font-size: 12px; color: var(--gray); margin-bottom: 15px;">Coche ce que tu as oublié d'inclure dans ton devis de base :</p>
+                
+                <div class="checkbox-row">
+                    <input type="checkbox" id="ao-deplacement" onchange="simulateCalc()">
+                    <label for="ao-deplacement">Aller-retour supplémentaire (+30€)</label>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="ao-fournitures" onchange="simulateCalc()">
+                    <label for="ao-fournitures">Petites fournitures (Joints, vis, colle)</label>
+                    <input type="number" id="ao-fourn-val" placeholder="€" oninput="simulateCalc()" style="display:none; background:#000;">
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="ao-dechet" onchange="simulateCalc()">
+                    <label for="ao-dechet">Frais de déchetterie (+25€)</label>
+                </div>
+            </div>
+
+            <div style="background: #000; border: 1px solid #3f3f46; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                    <span style="color: var(--gray);">Taxes (État)</span>
+                    <span id="sim-tax" style="color: var(--red); font-weight: 700;">0 €</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 18px; border-top: 1px solid #3f3f46; padding-top: 10px; margin-top: 10px;">
+                    <span style="font-weight: 800;">Dans ta poche </span>
+                    <span id="sim-net" style="color: var(--green); font-weight: 900;">0 €</span>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="saveJob()">🔒 Sécuriser & Envoyer au Comptable</button>
+        </div>
+    </div>
+
+    <script>
+        // Simulation pour la démo
+        const state = { jobs: [], totalNet: 4250, totalUrssaf: 1840, totalTva: 920, savedMarge: 345 };
+
+        document.getElementById('ao-fournitures').addEventListener('change', function(e) {
+            document.getElementById('ao-fourn-val').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        function openModal() { document.getElementById('job-modal').style.display = 'block'; }
+        function closeModal() { document.getElementById('job-modal').style.display = 'none'; }
+
+        function simulateCalc() {
+            const ttc = parseFloat(document.getElementById('j-ttc').value) || 0;
+            const tvaRate = parseFloat(document.getElementById('j-tva').value);
+            const matos = parseFloat(document.getElementById('j-matos').value) || 0;
+            
+            // Calcul Anti-Oubli
+            let extra = 0;
+            if(document.getElementById('ao-deplacement').checked) extra += 30;
+            if(document.getElementById('ao-dechet').checked) extra += 25;
+            if(document.getElementById('ao-fournitures').checked) {
+                extra += parseFloat(document.getElementById('ao-fourn-val').value) || 0;
+            }
+
+            const ht = ttc / (1 + (tvaRate/100));
+            const tva = ttc - ht;
+            const urssaf = ht * 0.212; // Base AE classique
+            
+            const net = ht - matos - urssaf + extra; // L'extra est ajouté à la marge récupérée
+
+            document.getElementById('sim-tax').innerText = (tva + urssaf).toFixed(0) + " €";
+            document.getElementById('sim-net').innerText = net.toFixed(0) + " €";
+
+            return { ttc, net, tva, urssaf, extra };
+        }
+
+        function saveJob() {
+            const client = document.getElementById('j-client').value || "Nouveau Chantier";
+            const res = simulateCalc();
+            
+            const newJob = {
+                id: Date.now(), client: client, net: res.net, tva: res.tva, urssaf: res.urssaf, extra: res.extra
+            };
+            
+            state.jobs.unshift(newJob);
+            
+            // Update globaux (Simulation)
+            state.totalNet += res.net; state.totalUrssaf += res.urssaf; state.totalTva += res.tva; state.savedMarge += res.extra;
+            
+            renderState();
+            closeModal();
+        }
+
+        function renderState() {
+            document.querySelector('.truth-value').innerText = Math.round(state.totalNet).toLocaleString() + " €";
+            document.querySelectorAll('.debt-box b')[0].innerText = Math.round(state.totalUrssaf).toLocaleString() + " €";
+            document.querySelectorAll('.debt-box b')[1].innerText = Math.round(state.totalTva).toLocaleString() + " €";
+            document.querySelector('.leak-banner b').innerText = "+ " + Math.round(state.savedMarge) + " €";
+
+            const list = document.getElementById('jobs-list');
+            list.innerHTML = '';
+            state.jobs.forEach(j => {
+                list.innerHTML += `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <div class="job-title">${j.client}</div>
+                                <div class="job-subtitle">À l'instant • Chantier clôturé</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 20px; font-weight: 900; color: var(--green);">${Math.round(j.net)} €</div>
+                                ${j.extra > 0 ? `<div style="font-size: 10px; color: var(--orange); font-weight: 800; margin-top: 2px;">+${j.extra}€ sauvés</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="job-stats">
+                            <div class="job-stat-item"><span>URSSAF Provisionné</span><b style="color: var(--gray);">${Math.round(j.urssaf)} €</b></div>
+                            <div class="job-stat-item"><span>TVA Collectée</span><b style="color: var(--gray);">${Math.round(j.tva)} €</b></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Init data mock for pitch
+        saveJob.call({ simulateCalc: () => ({ ttc: 1200, net: 650, tva: 120, urssaf: 200, extra: 55 }) }, document.getElementById('j-client').value = "Remplacement Chauffe-eau M. Bernard");
+        document.getElementById('j-client').value = ""; // reset
+    </script>
+</body>
+</html>
