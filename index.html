@@ -1,0 +1,564 @@
+MargeSurePro
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MARGESECURE PRO | L'EMPIRE ARTISAN</title>
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #151517;
+            --card-h: #1C1C1E;
+            --accent: #007AFF;
+            --p-blue: #0A84FF;
+            --p-green: #30D158;
+            --p-red: #FF453A;
+            --p-orange: #FF9F0A;
+            --p-gold: #D4AF37;
+            --gray: #8E8E93;
+            --white: #FFFFFF;
+            --glass: rgba(20, 20, 22, 0.98);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* MASTER ARCHITECTURE */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--white); overflow-x: hidden; padding-bottom: 140px; }
+        
+        /* AUTHENTICATION CINÉMATIQUE */
+        #auth-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        .auth-logo-box { text-align: center; margin-bottom: 50px; transform: scale(1.2); }
+        .auth-logo-box h1 { font-size: 45px; font-weight: 900; letter-spacing: -3px; background: linear-gradient(180deg, #fff 0%, #888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .auth-logo-box span { font-size: 10px; letter-spacing: 5px; color: var(--p-blue); text-transform: uppercase; font-weight: 800; }
+        .auth-card { background: var(--card); padding: 40px 30px; border-radius: 45px; width: 100%; max-width: 420px; border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+        
+        /* LAYOUT & CONTAINERS */
+        .container { max-width: 600px; margin: 0 auto; padding: 25px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; padding: 10px; }
+        
+        /* DASHBOARD HERO - LE MOTEUR V12 */
+        .hero-dashboard { background: linear-gradient(165deg, #1c1c1e 0%, #0a0a0b 100%); border-radius: 45px; padding: 40px 25px; border: 1px solid var(--border); margin-bottom: 30px; position: relative; overflow: hidden; }
+        .hero-dashboard::before { content: ''; position: absolute; top: -20%; right: -20%; width: 200px; height: 200px; background: var(--p-blue); filter: blur(120px); opacity: 0.15; }
+        .hero-label { font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 10px; text-align: center; }
+        .main-balance { font-size: 64px; font-weight: 900; letter-spacing: -4px; text-align: center; margin-bottom: 25px; }
+        
+        .triple-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .mini-stat { background: rgba(255,255,255,0.04); padding: 15px 10px; border-radius: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
+        .mini-stat b { display: block; font-size: 16px; margin-top: 5px; }
+
+        /* LISTING DOSSIERS PRESTIGE */
+        .dossier-card { background: var(--card); border-radius: 35px; padding: 25px; margin-bottom: 15px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; }
+        .dossier-card.paid { border-right: 8px solid var(--p-green); }
+        .dossier-card.pending { border-right: 8px solid var(--p-orange); }
+        .dossier-meta b { font-size: 20px; display: block; margin-bottom: 4px; }
+        .dossier-meta span { font-size: 13px; color: var(--gray); font-weight: 600; text-transform: uppercase; }
+        .dossier-price { text-align: right; }
+        .dossier-price .val { font-size: 22px; font-weight: 900; display: block; }
+        .dossier-price .status { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 8px; border-radius: 8px; margin-top: 5px; display: inline-block; }
+
+        /* EDITOR - L'USINE À GAZ PRO */
+        .full-editor { position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; padding: 60px 20px 140px 20px; display: none; }
+        .section-box { background: var(--card); border-radius: 35px; padding: 30px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .section-title { font-size: 11px; font-weight: 900; color: var(--p-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
+
+        /* FORM ELEMENTS */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 8px; margin-left: 10px; }
+        input, select, textarea { width: 100%; background: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 20px; padding: 18px 22px; color: white; font-size: 17px; outline: none; -webkit-appearance: none; }
+        input:focus { border-color: var(--p-blue); background: #222; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* BILAN LIVE COMPTABLE */
+        .bilan-comptable { background: #000; border-radius: 30px; padding: 25px; border: 1px dashed #333; }
+        .line { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 15px; color: var(--gray); }
+        .line.bold { color: var(--white); font-size: 17px; font-weight: 800; border-top: 1px solid #222; pt: 15px; margin-top: 15px; }
+        .line b { color: var(--white); }
+
+        /* PHOTO MODULE */
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .photo-box { aspect-ratio: 1; background: #222; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #444; position: relative; overflow: hidden; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-label { font-size: 10px; font-weight: 800; color: #666; position: absolute; bottom: 10px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 8px; }
+
+        /* NAVIGATION EXCLUSIVE */
+        .nav-master { position: fixed; bottom: 35px; left: 20px; right: 20px; background: var(--glass); backdrop-filter: blur(30px); padding: 18px; border-radius: 40px; border: 1px solid var(--border); display: flex; gap: 12px; z-index: 5000; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .btn { border: none; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .btn-main { background: var(--p-blue); color: white; border-radius: 25px; flex: 1; padding: 20px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-icon { background: var(--card-h); color: white; border-radius: 25px; width: 65px; font-size: 24px; border: 1px solid var(--border); }
+        .btn:active { transform: scale(0.95); }
+
+        /* ANIMATIONS */
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* SEARCH BAR */
+        .search-container { position: relative; margin-bottom: 25px; }
+        .search-bar { background: var(--card); padding-left: 55px; border-radius: 25px; border-color: transparent; }
+        .search-icon { position: absolute; left: 20px; top: 18px; color: var(--gray); font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="auth-logo-box">
+            <h1>MARGESECURE</h1>
+            <span>Signature Series 2026</span>
+        </div>
+        <div class="auth-card">
+            <label>ID ARTISAN UNIQUE</label>
+            <div id="id-display" style="font-size: 28px; font-weight: 900; color: var(--p-blue); text-align: center; margin-bottom: 35px; letter-spacing: 2px;">ID-00000</div>
+            
+            <label>CLÉ DE CRYPTAGE BIOMÉTRIQUE</label>
+            <input type="number" id="auth-key" placeholder="••••••" style="text-align: center; font-size: 32px; letter-spacing: 10px; margin-bottom: 25px; border-color: var(--p-blue);">
+            
+            <button class="btn-main" style="width: 100%;" onclick="validateAuth()">DÉVERROUILLER L'ACCÈS PRO</button>
+            <p id="auth-err" style="color: var(--p-red); text-align: center; font-size: 12px; font-weight: 800; margin-top: 20px; display: none;">SÉCURITÉ : CODE INCORRECT</p>
+        </div>
+        <p style="margin-top: 50px; color: #444; font-size: 11px; text-align: center; line-height: 1.5;">VOTRE VIE EN DÉPEND. TOUTES LES DONNÉES SONT<br>SÉCURISÉES DANS VOTRE TERMINAL PERSONNEL.</p>
+    </div>
+
+    <div id="app" style="display: none;">
+        
+        <div id="dashboard" class="container">
+            <div class="header-top">
+                <div>
+                    <h2 id="business-name" style="font-size: 28px; font-weight: 900;">MON EMPIRE</h2>
+                    <span style="font-weight: 800; color: var(--p-blue); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">Tableau de bord stratégique</span>
+                </div>
+                <div style="width: 60px; height: 60px; background: var(--card); border-radius: 22px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);" onclick="toggleSettings()">
+                    <span style="font-size: 26px;">⚙️</span>
+                </div>
+            </div>
+
+            <div class="hero-dashboard">
+                <span class="hero-label">Bénéfice Net Réel Accumulé</span>
+                <div class="main-balance" id="total-profit">0 €</div>
+                
+                <div class="triple-stats">
+                    <div class="mini-stat">
+                        <span class="hero-label" style="font-size: 9px; margin:0">C.A. Global</span>
+                        <b id="total-ca">0 €</b>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="hero-label" style="font-size: 9px; margin:0">À Provisionner</span>
+                        <b id="total-tax" style="color: var(--p-red);">0 €</b>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="hero-label" style="font-size: 9px; margin:0">Marge Moyenne</span>
+                        <b id="avg-margin" style="color: var(--p-green);">0%</b>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="db-search" class="search-bar" placeholder="Chercher un client, une rue, un métier..." oninput="renderDossiers()">
+            </div>
+
+            <div id="dossiers-list">
+                </div>
+        </div>
+
+        <div id="editor" class="full-editor slide-up">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <button class="btn-icon" onclick="closeEditor()" style="width: 50px; height: 50px;">✕</button>
+                    <h2 style="font-weight: 900; letter-spacing: -1px;">GESTION DOSSIER</h2>
+                    <button class="btn-main" style="width: auto; padding: 12px 25px; font-size: 13px;" onclick="saveDossier()">ENREGISTRER</button>
+                </div>
+
+                <div class="section-box">
+                    <div class="section-title">Informations Client</div>
+                    <div class="input-group">
+                        <label>NOM DU CLIENT / CHANTIER</label>
+                        <input type="text" id="f-client" placeholder="Ex: Jean Dupont - Rénovation Cuisine">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>CORPS D'ÉTAT</label>
+                            <select id="f-type">
+                                <option value="PLOMBERIE">💧 PLOMBERIE</option>
+                                <option value="ÉLECTRICITÉ">⚡ ÉLECTRICITÉ</option>
+                                <option value="PEINTURE">🎨 PEINTURE</option>
+                                <option value="MENUISERIE">🪚 MENUISERIE</option>
+                                <option value="GÉNÉRAL">🛠️ TOUT CORPS D'ÉTAT</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>DATE DÉBUT</label>
+                            <input type="date" id="f-date">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #262629; padding: 15px 20px; border-radius: 20px; margin-top: 10px;">
+                        <span style="font-weight: 800; font-size: 14px;">STATUT PAIEMENT REÇU</span>
+                        <input type="checkbox" id="f-paid" style="width: 30px; height: 30px; margin: 0;" onchange="liveCalculate()">
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <div class="section-title">Étude de Rentabilité</div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>DEVIS PROPOSÉ TTC (€)</label>
+                            <input type="number" id="f-ttc" placeholder="0.00" oninput="liveCalculate()">
+                        </div>
+                        <div class="input-group">
+                            <label>TAUX TVA (%)</label>
+                            <select id="f-tva" onchange="liveCalculate()">
+                                <option value="1.20">20% (Standard)</option>
+                                <option value="1.10">10% (Rénovation)</option>
+                                <option value="1.055">5.5% (Énergie)</option>
+                                <option value="1.00">0% (Auto-Entr.)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>MATÉRIEL & FOURNITURES TTC</label>
+                            <input type="number" id="f-matos" placeholder="0.00" oninput="liveCalculate()">
+                        </div>
+                        <div class="input-group">
+                            <label>DURÉE PRÉVUE (JOURS)</label>
+                            <input type="number" id="f-jours" value="1" oninput="liveCalculate()">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>LOGISTIQUE (CARBURANT, REPAS, PARKING...)</label>
+                        <input type="number" id="f-frais" placeholder="0.00" oninput="liveCalculate()">
+                    </div>
+
+                    <div class="bilan-comptable">
+                        <div class="line"><span>TVA à provisionner</span><b id="calc-tva">0.00 €</b></div>
+                        <div class="line"><span>Charges sociales estimées</span><b id="calc-social" style="color: var(--p-red);">0.00 €</b></div>
+                        <div class="line"><span>Rémunération Artisan (Salaire)</span><b id="calc-salary">0.00 €</b></div>
+                        <div class="line bold"><span>MARGE DE SÉCURITÉ RÉELLE</span><b id="calc-net" style="color: var(--p-green);">0.00 €</b></div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <span id="calc-perc" style="font-size: 12px; font-weight: 900; background: rgba(48,209,88,0.2); color: var(--p-green); padding: 5px 15px; border-radius: 10px;">RENDEMENT : 0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <div class="section-title">Preuves de Qualité (Photos)</div>
+                    <div class="photo-grid">
+                        <div class="photo-box" onclick="triggerPhoto('before')">
+                            <img id="img-before" src="" style="display:none;">
+                            <span id="label-before" style="font-size: 24px;">📸</span>
+                            <span class="photo-label">AVANT</span>
+                        </div>
+                        <div class="photo-box" onclick="triggerPhoto('after')">
+                            <img id="img-after" src="" style="display:none;">
+                            <span id="label-after" style="font-size: 24px;">📸</span>
+                            <span class="photo-label">APRÈS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-main" style="background: transparent; border: 1px solid var(--p-red); color: var(--p-red); margin-top: 20px;" onclick="deleteDossier()">SUPPRIMER CE DOSSIER DÉFINITIVEMENT</button>
+            </div>
+        </div>
+
+        <div id="settings" class="full-editor slide-up">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="font-weight: 900;">RÉGLAGES EMPIRE</h2>
+                    <button class="btn-icon" onclick="toggleSettings()">✕</button>
+                </div>
+                <div class="section-box">
+                    <label>NOM DE VOTRE STRUCTURE</label>
+                    <input type="text" id="cfg-name" placeholder="Ex: Prestige Plomberie 75">
+                    
+                    <div class="grid-2" style="margin-top: 20px;">
+                        <div>
+                            <label>% CHARGES SOCIALES</label>
+                            <input type="number" id="cfg-tax-rate" value="21.2">
+                        </div>
+                        <div>
+                            <label>OBJECTIF SALAIRE / JOUR</label>
+                            <input type="number" id="cfg-salary-day" value="250">
+                        </div>
+                    </div>
+                    <label style="margin-top:20px;">RÉGIME FISCAL</label>
+                    <select id="cfg-regime">
+                        <option value="AE">AUTO-ENTREPRENEUR (Micro)</option>
+                        <option value="SASU">SASU / EURL (IS)</option>
+                    </select>
+                </div>
+                <button class="btn-main" style="width: 100%; margin-bottom: 15px;" onclick="exportEmpire()">📦 EXPORTER LES DONNÉES (CSV)</button>
+                <button class="btn-main" style="width: 100%; background: var(--p-red);" onclick="logout()">🔒 VERROUILLER L'APPLICATION</button>
+            </div>
+        </div>
+
+        <div class="nav-master">
+            <button class="btn btn-main" onclick="openEditor()">+ NOUVEAU DOSSIER CHANTIER</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES LOCALE ---
+        let db = JSON.parse(localStorage.getItem('ms_empire_db')) || [];
+        let config = JSON.parse(localStorage.getItem('ms_empire_cfg')) || { name: 'Mon Entreprise', tax: 21.2, salary: 250, regime: 'AE' };
+        let activeId = null;
+        let photoStore = { before: null, after: null };
+
+        // --- AUTH SYSTÈME ---
+        window.onload = () => {
+            const artisanID = localStorage.getItem('ms_artisan_id') || Math.floor(Math.random()*90000 + 10000);
+            localStorage.setItem('ms_artisan_id', artisanID);
+            document.getElementById('id-display').innerText = "ID-" + artisanID;
+            if(sessionStorage.getItem('ms_authenticated') === 'true') launchApp();
+        };
+
+        function validateAuth() {
+            const input = document.getElementById('auth-key').value;
+            const myID = parseInt(localStorage.getItem('ms_artisan_id'));
+            const masterKey = "061266";
+            const secretKey = Math.floor((myID + 13) * 13.5);
+
+            if(input == masterKey || input == secretKey) {
+                sessionStorage.setItem('ms_authenticated', 'true');
+                launchApp();
+            } else {
+                const err = document.getElementById('auth-err');
+                err.style.display = 'block';
+                setTimeout(() => err.style.display='none', 3000);
+            }
+        }
+
+        function launchApp() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            loadConfigFields();
+            renderDossiers();
+        }
+
+        // --- CALCULATEUR V12 (L'intelligence métier) ---
+        function liveCalculate() {
+            const ttc = parseFloat(document.getElementById('f-ttc').value) || 0;
+            const tvaMod = parseFloat(document.getElementById('f-tva').value) || 1;
+            const matos = parseFloat(document.getElementById('f-matos').value) || 0;
+            const jours = parseFloat(document.getElementById('f-jours').value) || 1;
+            const frais = parseFloat(document.getElementById('f-frais').value) || 0;
+
+            const ht = ttc / tvaMod;
+            const tvaAmt = ttc - ht;
+            
+            let social = 0;
+            if(config.regime === 'AE') {
+                social = ttc * (parseFloat(config.tax) / 100);
+            } else {
+                social = (ht - matos - frais) * 0.45; // Simulation SASU/EURL
+            }
+
+            const targetSalary = jours * parseFloat(config.salary);
+            const netMarge = ht - social - matos - frais - targetSalary;
+            const marginPerc = ht > 0 ? (netMarge / ht * 100) : 0;
+
+            document.getElementById('calc-tva').innerText = tvaAmt.toFixed(2) + " €";
+            document.getElementById('calc-social').innerText = social.toFixed(2) + " €";
+            document.getElementById('calc-salary').innerText = targetSalary.toFixed(2) + " €";
+            
+            const netEl = document.getElementById('calc-net');
+            netEl.innerText = netMarge.toFixed(2) + " €";
+            netEl.style.color = netMarge >= 0 ? "var(--p-green)" : "var(--p-red)";
+            
+            const percEl = document.getElementById('calc-perc');
+            percEl.innerText = "RENDEMENT : " + Math.round(marginPerc) + "%";
+            percEl.style.background = netMarge >= 0 ? "rgba(48,209,88,0.1)" : "rgba(255,69,58,0.1)";
+            percEl.style.color = netMarge >= 0 ? "var(--p-green)" : "var(--p-red)";
+
+            return { ttc, netMarge, tvaAmt, social };
+        }
+
+        // --- GESTION DES DOSSIERS ---
+        function saveDossier() {
+            const res = liveCalculate();
+            const dossier = {
+                id: activeId || Date.now(),
+                client: document.getElementById('f-client').value || "Chantier sans nom",
+                type: document.getElementById('f-type').value,
+                date: document.getElementById('f-date').value || new Date().toISOString().split('T')[0],
+                ttc: res.ttc,
+                net: res.netMarge,
+                paid: document.getElementById('f-paid').checked,
+                details: {
+                    tva: document.getElementById('f-tva').value,
+                    matos: document.getElementById('f-matos').value,
+                    jours: document.getElementById('f-jours').value,
+                    frais: document.getElementById('f-frais').value
+                },
+                photos: { ...photoStore }
+            };
+
+            const idx = db.findIndex(d => d.id === activeId);
+            if(idx > -1) db[idx] = dossier;
+            else db.unshift(dossier);
+
+            localStorage.setItem('ms_empire_db', JSON.stringify(db));
+            closeEditor();
+            renderDossiers();
+        }
+
+        function renderDossiers() {
+            const list = document.getElementById('dossiers-list');
+            const search = document.getElementById('db-search').value.toLowerCase();
+            list.innerHTML = "";
+
+            let totalNet = 0; let totalCA = 0; let totalTax = 0;
+
+            db.filter(d => d.client.toLowerCase().includes(search) || d.type.toLowerCase().includes(search)).forEach(d => {
+                const card = document.createElement('div');
+                card.className = `dossier-card ${d.paid ? 'paid' : 'pending'}`;
+                card.onclick = () => openDossier(d.id);
+                
+                const isPos = d.net >= 0;
+                
+                card.innerHTML = `
+                    <div class="dossier-meta">
+                        <b>${d.client}</b>
+                        <span>${d.date} • ${d.type}</span>
+                    </div>
+                    <div class="dossier-price">
+                        <span class="val" style="color:${isPos ? 'var(--white)' : 'var(--p-red)'}">${Math.round(d.net)} €</span>
+                        <span class="status" style="background:${d.paid ? 'var(--p-green)' : 'var(--p-orange)'}; color:#000">
+                            ${d.paid ? 'PAYÉ' : 'ATTENTE'}
+                        </span>
+                    </div>
+                `;
+                list.appendChild(card);
+                
+                totalNet += d.net;
+                totalCA += d.ttc;
+                // Calcul simplifié des taxes cumulées pour le dashboard
+                totalTax += (d.ttc - (d.ttc / d.details.tva)) + (d.paid ? 0 : 0); 
+            });
+
+            document.getElementById('total-profit').innerText = Math.round(totalNet).toLocaleString() + " €";
+            document.getElementById('total-ca').innerText = Math.round(totalCA).toLocaleString() + " €";
+            document.getElementById('total-tax').innerText = Math.round(totalTax).toLocaleString() + " €";
+            document.getElementById('avg-margin').innerText = totalCA > 0 ? Math.round((totalNet/totalCA)*100) + "%" : "0%";
+        }
+
+        function openDossier(id) {
+            activeId = id;
+            const d = db.find(x => x.id === id);
+            document.getElementById('f-client').value = d.client;
+            document.getElementById('f-type').value = d.type;
+            document.getElementById('f-date').value = d.date;
+            document.getElementById('f-ttc').value = d.ttc;
+            document.getElementById('f-tva').value = d.details.tva;
+            document.getElementById('f-matos').value = d.details.matos;
+            document.getElementById('f-jours').value = d.details.jours;
+            document.getElementById('f-frais').value = d.details.frais;
+            document.getElementById('f-paid').checked = d.paid;
+            
+            photoStore = d.photos || { before: null, after: null };
+            updatePhotoUI();
+            
+            document.getElementById('editor').style.display = 'block';
+            liveCalculate();
+        }
+
+        function deleteDossier() {
+            if(confirm("SUPPRIMER CE DOSSIER ?\nCette action est irréversible et affectera votre bilan annuel.")) {
+                db = db.filter(d => d.id !== activeId);
+                localStorage.setItem('ms_empire_db', JSON.stringify(db));
+                closeEditor();
+                renderDossiers();
+            }
+        }
+
+        // --- MODULE PHOTO (Simulé pour LocalStorage) ---
+        function triggerPhoto(type) {
+            const url = prompt("Collez l'URL de la photo (SaaS Demo) ou simulez un upload :");
+            if(url) {
+                photoStore[type] = url;
+                updatePhotoUI();
+            }
+        }
+
+        function updatePhotoUI() {
+            if(photoStore.before) {
+                document.getElementById('img-before').src = photoStore.before;
+                document.getElementById('img-before').style.display = 'block';
+                document.getElementById('label-before').style.display = 'none';
+            } else {
+                document.getElementById('img-before').style.display = 'none';
+                document.getElementById('label-before').style.display = 'block';
+            }
+            if(photoStore.after) {
+                document.getElementById('img-after').src = photoStore.after;
+                document.getElementById('img-after').style.display = 'block';
+                document.getElementById('label-after').style.display = 'none';
+            } else {
+                document.getElementById('img-after').style.display = 'none';
+                document.getElementById('label-after').style.display = 'block';
+            }
+        }
+
+        // --- CONFIG & UTILS ---
+        function toggleSettings() {
+            const s = document.getElementById('settings');
+            s.style.display = s.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function loadConfigFields() {
+            document.getElementById('business-name').innerText = config.name.toUpperCase();
+            document.getElementById('cfg-name').value = config.name;
+            document.getElementById('cfg-tax-rate').value = config.tax;
+            document.getElementById('cfg-salary-day').value = config.salary;
+            document.getElementById('cfg-regime').value = config.regime;
+        }
+
+        function saveConfig() {
+            config = {
+                name: document.getElementById('cfg-name').value || 'MON EMPIRE',
+                tax: document.getElementById('cfg-tax-rate').value,
+                salary: document.getElementById('cfg-salary-day').value,
+                regime: document.getElementById('cfg-regime').value
+            };
+            localStorage.setItem('ms_empire_cfg', JSON.stringify(config));
+            document.getElementById('business-name').innerText = config.name.toUpperCase();
+        }
+
+        function openEditor() {
+            activeId = null;
+            photoStore = { before: null, after: null };
+            document.querySelectorAll('#editor input:not([type=checkbox])').forEach(i => i.value = "");
+            document.getElementById('f-jours').value = 1;
+            document.getElementById('f-paid').checked = false;
+            updatePhotoUI();
+            document.getElementById('editor').style.display = 'block';
+            liveCalculate();
+        }
+
+        function closeEditor() { document.getElementById('editor').style.display = 'none'; }
+        
+        function exportEmpire() {
+            let csv = "Date;Client;Metier;TTC;Net;Statut\n";
+            db.forEach(d => csv += `${d.date};${d.client};${d.type};${d.ttc};${d.net};${d.paid?'PAYE':'ATTENTE'}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Empire_Bilan_${new Date().getFullYear()}.csv`;
+            a.click();
+        }
+
+        function logout() { sessionStorage.removeItem('ms_authenticated'); location.reload(); }
+
+        // Écouteurs de sauvegarde config automatique
+        document.querySelectorAll('#settings input, #settings select').forEach(el => {
+            el.oninput = saveConfig;
+        });
+    </script>
+</body>
+</html>
