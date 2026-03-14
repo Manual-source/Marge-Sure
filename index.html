@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MARGE-SÛRE PRO</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root { 
+            --p: #0A84FF; --bg: #000; --card: #1C1C1E; 
+            --green: #32D74B; --red: #FF453A; --blue: #0A84FF; 
+            --orange: #FF9500; --gray: #8E8E93; 
+        }
+        * { -webkit-user-select: none; box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; touch-action: manipulation; }
+        input, select { -webkit-user-select: text !important; outline: none; }
+        body { background-color: var(--bg); color: white; margin: 0; padding: env(safe-area-inset-top) 15px 140px 15px; }
+
+        .card { background: var(--card); padding: 20px; border-radius: 22px; margin-bottom: 12px; border: 1px solid #2C2C2E; }
+        .net-display { font-size: 42px; font-weight: 900; color: var(--green); text-align: center; margin: 10px 0; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        input, select { width: 100%; background: #2C2C2E; padding: 15px; border-radius: 12px; color: white; border: 1px solid #3A3A3C; font-size: 16px; margin-top: 5px; }
+        label { color: var(--gray); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        
+        .btn-main { background: var(--p); color: #000; border: none; padding: 20px; border-radius: 18px; font-size: 14px; font-weight: 900; width: 100%; cursor: pointer; text-transform: uppercase; }
+        
+        /* Graphique */
+        .chart-container { position: relative; height: 200px; margin-bottom: 10px; }
+        .badge-marge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 900; margin-bottom: 15px; }
+        
+        /* Photos */
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .photo-box { background: #2C2C2E; border-radius: 15px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; overflow: hidden; position: relative; border: 1px dashed #444; cursor: pointer; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; }
+        .btn-del-photo { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; z-index: 10; font-weight: bold; }
+
+        /* Dossiers */
+        .folder-item { padding: 20px; background: #1C1C1E; border-radius: 20px; margin-bottom: 10px; border-left: 6px solid var(--p); display: flex; justify-content: space-between; align-items: center; }
+        .btn-del-folder { background: none; border: none; color: var(--red); font-size: 20px; padding: 10px; cursor: pointer; }
+
+        .action-bar { position: fixed; bottom: 30px; left: 15px; right: 15px; display: flex; gap: 10px; background: rgba(0,0,0,0.85); padding: 12px; border-radius: 28px; backdrop-filter: blur(15px); border: 1px solid #333; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div id="lock-screen" style="text-align: center; padding: 100px 20px;">
+        <h1 style="font-size:40px; font-weight:900;">MARGE<span style="color:var(--p)">SÛRE</span></h1>
+        <input type="password" id="keyIn" placeholder="CLÉ D'ACCÈS" style="width: 100%; max-width: 300px; text-align: center;">
+        <button class="btn-main" onclick="unlock()" style="width: 100%; max-width: 300px; margin-top: 20px;">ENTRER</button>
+    </div>
+
+    <div id="app" style="display:none;">
+        
+        <div id="view-folders">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:20px;">
+                <h2 style="margin:0;">📂 Mes Chantiers</h2>
+                <button onclick="toggleSetup()" style="background: #1C1C1E; border: 1px solid #333; color: var(--gray); padding: 10px; border-radius: 12px;">⚙️ Config</button>
+            </div>
+            <div id="folder-list"></div>
+            <button class="btn-main" style="margin-top: 20px; background: var(--blue); color: white;" onclick="createNewDossier()">+ NOUVEAU CHANTIER</button>
+        </div>
+
+        <div id="view-edit" style="display:none;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+                <button onclick="saveAndQuit()" style="color:var(--p); background:none; border:none; font-weight:900;">⬅ RETOUR</button>
+                <div id="marge-badge" class="badge-marge">ANALYSE...</div>
+            </div>
+
+            <div class="card">
+                <div class="chart-container"><canvas id="rentaChart"></canvas></div>
+                <div id="res-net" class="net-display">0 €</div>
+                <div style="text-align:center; font-size:10px; color:var(--gray); font-weight:800;">BÉNÉFICE NET RÉEL</div>
+            </div>
+
+            <div class="card">
+                <label>Client & Devis</label>
+                <input type="text" id="client" placeholder="Nom du chantier" oninput="calc()">
+                <div class="grid-2" style="margin-top:10px;">
+                    <div><label>Vendu TTC</label><input type="number" id="ttc" oninput="calc()"></div>
+                    <div>
+                        <label>TVA</label>
+                        <select id="tva" onchange="calc()">
+                            <option value="1.10">10%</option>
+                            <option value="1.20">20%</option>
+                            <option value="1.00">0%</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border: 1px solid var(--p);">
+                <label>Matériel (Achats)</label>
+                <div class="grid-2">
+                    <div><span style="font-size:9px; color:var(--gray)">VENDU</span><input type="number" id="matos_prev" oninput="calc()"></div>
+                    <div><span style="font-size:9px; color:var(--gray)">RÉEL</span><input type="number" id="matos_real" oninput="calc()"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label>Terrain</label>
+                <div class="grid-2">
+                    <div><label>Jours</label><input type="number" id="jours" oninput="calc()" value="1"></div>
+                    <div><label>Km Total</label><input type="number" id="distance" oninput="calc()"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label>Photos Chantier</label>
+                <div class="photo-grid">
+                    <div class="photo-box" onclick="triggerPhoto('before')">
+                        <span id="label-before">📷 AVANT</span>
+                        <img id="img-before" style="display:none;">
+                        <button id="del-before" class="btn-del-photo" style="display:none;" onclick="deletePhoto(event, 'before')">✕</button>
+                    </div>
+                    <div class="photo-box" onclick="triggerPhoto('after')">
+                        <span id="label-after">📷 APRÈS</span>
+                        <img id="img-after" style="display:none;">
+                        <button id="del-after" class="btn-del-photo" style="display:none;" onclick="deletePhoto(event, 'after')">✕</button>
+                    </div>
+                </div>
+                <input type="file" id="photo-input" hidden accept="image/*">
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-main" style="background:#2C2C2E; color:white; flex:1;" onclick="window.print()">📄 PDF</button>
+                <button class="btn-main" style="flex:2;" onclick="saveAndQuit()">💾 ENREGISTRER</button>
+            </div>
+        </div>
+
+        <div id="setup-view" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:999; padding:30px;">
+            <h2 style="color:var(--p);">⚙️ Configuration</h2>
+            <label>Régime Fiscal</label>
+            <select id="set-regime" onchange="saveGlobal()">
+                <option value="micro">Auto-Entrepreneur</option>
+                <option value="societe">Société / Réel</option>
+            </select>
+            <div class="grid-2" style="margin-top:15px;">
+                <div><label>% Charges</label><input type="number" id="set-urssaf" value="21.2" oninput="saveGlobal()"></div>
+                <div><label>Prix Km</label><input type="number" id="set-km" value="0.60" oninput="saveGlobal()"></div>
+            </div>
+            <div style="margin-top:15px;">
+                <label>Salaire Jour Ciblé (€)</label>
+                <input type="number" id="set-salaire" value="180" oninput="saveGlobal()">
+            </div>
+            <button class="btn-main" onclick="toggleSetup()" style="margin-top:30px;">FERMER</button>
+        </div>
+    </div>
+
+    <script>
+        let myChart;
+        let currentId = null;
+        let photos = { before: null, after: null };
+
+        window.onload = () => {
+            loadGlobal();
+            initChart();
+            if(localStorage.getItem('ms_ok') === 'true') run();
+        };
+
+        function unlock() {
+            if(document.getElementById('keyIn').value === "2026") { 
+                localStorage.setItem('ms_ok', 'true'); 
+                run(); 
+            }
+        }
+
+        function run() {
+            document.getElementById('lock-screen').style.display='none';
+            document.getElementById('app').style.display='block';
+            renderFolders();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('rentaChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Matos', 'État', 'Frais', 'Revenu'],
+                    datasets: [{
+                        data: [1, 1, 1, 1],
+                        backgroundColor: ['#FF9500', '#FF453A', '#8E8E93', '#32D74B'],
+                        borderWidth: 0, cutout: '75%'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function calc() {
+            if(!currentId) return;
+            const reg = document.getElementById('set-regime').value;
+            const urssaf = (parseFloat(document.getElementById('set-urssaf').value) || 0) / 100;
+            const km = parseFloat(document.getElementById('set-km').value) || 0;
+            const salJ = parseFloat(document.getElementById('set-salaire').value) || 0;
+
+            const ttc = parseFloat(document.getElementById('ttc').value) || 0;
+            const tva = parseFloat(document.getElementById('tva').value) || 1;
+            const ht = ttc / tva;
+            const mReal = parseFloat(document.getElementById('matos_real').value) || 0;
+            const dist = parseFloat(document.getElementById('distance').value) || 0;
+            const j = parseFloat(document.getElementById('jours').value) || 1;
+
+            const taxe = (reg === 'micro') ? (ttc * urssaf) : ((ht - mReal) * urssaf);
+            const totalTaxe = taxe + (ttc - ht);
+            const totalKm = dist * km;
+            const totalSal = j * salJ;
+            const net = ht - mReal - taxe - totalKm - totalSal;
+
+            document.getElementById('res-net').innerText = Math.round(net) + " €";
+            document.getElementById('res-net').style.color = net < 0 ? "var(--red)" : "var(--green)";
+
+            myChart.data.datasets[0].data = [Math.max(0, mReal), Math.max(0, totalTaxe), Math.max(0, totalKm), Math.max(0, net + totalSal)];
+            myChart.update();
+
+            const badge = document.getElementById('marge-badge');
+            if(net < 0) { badge.innerText = "❌ PERTE"; badge.style.background = "var(--red)"; }
+            else { badge.innerText = "💰 RENTABLE"; badge.style.background = "var(--green)"; }
+            
+            saveCurrent();
+        }
+
+        function triggerPhoto(type) {
+            const input = document.getElementById('photo-input');
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = event => {
+                    photos[type] = event.target.result;
+                    document.getElementById('img-'+type).src = photos[type];
+                    document.getElementById('img-'+type).style.display = 'block';
+                    document.getElementById('del-'+type).style.display = 'block';
+                    saveCurrent();
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        function deletePhoto(e, type) {
+            e.stopPropagation();
+            photos[type] = null;
+            document.getElementById('img-'+type).style.display = 'none';
+            document.getElementById('del-'+type).style.display = 'none';
+            saveCurrent();
+        }
+
+        function deleteDossier(id, e) {
+            e.stopPropagation();
+            if(confirm("Supprimer ce chantier définitivement ?")) {
+                localStorage.removeItem(id);
+                let f = JSON.parse(localStorage.getItem('ms_folders')) || [];
+                localStorage.setItem('ms_folders', JSON.stringify(f.filter(x => x.id !== id)));
+                renderFolders();
+            }
+        }
+
+        function saveCurrent() {
+            if(!currentId) return;
+            const data = {
+                id: currentId, client: document.getElementById('client').value,
+                ttc: document.getElementById('ttc').value, mprev: document.getElementById('matos_prev').value,
+                mreal: document.getElementById('matos_real').value, dist: document.getElementById('distance').value,
+                jours: document.getElementById('jours').value, tva: document.getElementById('tva').value,
+                photos: photos, lastNet: document.getElementById('res-net').innerText,
+                date: new Date().toLocaleDateString('fr-FR')
+            };
+            localStorage.setItem(currentId, JSON.stringify(data));
+            let f = JSON.parse(localStorage.getItem('ms_folders')) || [];
+            f = f.filter(x => x.id !== currentId);
+            f.unshift({id: data.id, name: data.client || "Chantier", lastNet: data.lastNet, date: data.date});
+            localStorage.setItem('ms_folders', JSON.stringify(f.slice(0, 10)));
+        }
+
+        function openDossier(id) {
+            currentId = id;
+            const d = JSON.parse(localStorage.getItem(id));
+            document.getElementById('client').value = d.client || "";
+            document.getElementById('ttc').value = d.ttc || "";
+            document.getElementById('matos_prev').value = d.mprev || "";
+            document.getElementById('matos_real').value = d.mreal || "";
+            document.getElementById('distance').value = d.dist || "";
+            document.getElementById('jours').value = d.jours || 1;
+            document.getElementById('tva').value = d.tva || "1.10";
+            photos = d.photos || {before:null, after:null};
+            ['before','after'].forEach(t => {
+                document.getElementById('img-'+t).src = photos[t] || "";
+                document.getElementById('img-'+t).style.display = photos[t] ? 'block' : 'none';
+                document.getElementById('del-'+t).style.display = photos[t] ? 'block' : 'none';
+            });
+            document.getElementById('view-folders').style.display='none';
+            document.getElementById('view-edit').style.display='block';
+            setTimeout(calc, 100);
+        }
+
+        function createNewDossier() {
+            currentId = 'd_' + Date.now();
+            photos = {before:null, after:null};
+            document.querySelectorAll('#view-edit input').forEach(i => i.value = "");
+            document.getElementById('jours').value = 1;
+            ['before','after'].forEach(t => { document.getElementById('img-'+t).style.display='none'; document.getElementById('del-'+t).style.display='none'; });
+            document.getElementById('view-folders').style.display='none';
+            document.getElementById('view-edit').style.display='block';
+            calc();
+        }
+
+        function renderFolders() {
+            const list = document.getElementById('folder-list');
+            const f = JSON.parse(localStorage.getItem('ms_folders')) || [];
+            list.innerHTML = f.map(i => `
+                <div class="folder-item" onclick="openDossier('${i.id}')">
+                    <div style="flex:1"><b>${i.name}</b><br><small style="color:var(--gray)">${i.date}</small></div>
+                    <div style="text-align:right; margin-right:15px;"><b style="color:${i.lastNet.includes('-')?'var(--red)':'var(--green)'}">${i.lastNet}</b></div>
+                    <button class="btn-del-folder" onclick="deleteDossier('${i.id}', event)">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function saveAndQuit() { saveCurrent(); document.getElementById('view-folders').style.display='block'; document.getElementById('view-edit').style.display='none'; renderFolders(); }
+        function toggleSetup() { const s = document.getElementById('setup-view'); s.style.display = s.style.display==='none'?'block':'none'; }
+        function saveGlobal() { localStorage.setItem('ms_global', JSON.stringify({ r: document.getElementById('set-regime').value, u: document.getElementById('set-urssaf').value, k: document.getElementById('set-km').value, s: document.getElementById('set-salaire').value })); if(currentId) calc(); }
+        function loadGlobal() { const g = JSON.parse(localStorage.getItem('ms_global')); if(g) { document.getElementById('set-regime').value = g.r || 'micro'; document.getElementById('set-urssaf').value = g.u || 21.2; document.getElementById('set-km').value = g.k || 0.60; document.getElementById('set-salaire').value = g.s || 180; } }
+    </script>
+</body>
+</html>
