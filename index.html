@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#F2F2F7">
+    <title>MARGESURE ELITE</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #F2F2F7; --card: #FFFFFF; 
+            --accent: #FF9500; --blue: #007AFF; --green: #34C759; --magic: #AF52DE;
+            --red: #FF3B30; --gray: #8E8E93; --text: #1C1C1E; --text-sec: #3A3A3C;
+            --border: #E5E5EA; --shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000; --card: #1C1C1E; 
+                --text: #FFFFFF; --text-sec: #EBEBF5;
+                --border: #38383A; --shadow: 0 8px 30px rgba(0,0,0,0.4);
+            }
+            input:not([type="range"]):not([type="color"]), select, textarea, .time-group { background: #2C2C2E; color: white; box-shadow: none; }
+            .nav-bottom { background: rgba(28, 28, 30, 0.85); border-top: 1px solid #38383A; }
+            .nav-bottom .active-tab { background: #3A3A3C; color: var(--blue); border-color: transparent; }
+            .nav-bottom .btn { background: transparent; }
+            .dossier-item { border-color: #38383A; }
+            .gauge::before { background: var(--card); }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 100px; transition: background 0.3s; }
+        
+        .view { display: none; animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); min-height: 100vh; }
+        .view.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); transition: transform 0.2s, background 0.3s; position: relative;}
+        .card-title { font-size: 15px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .dashboard-header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
+        .dashboard-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+        
+        /* BANNIERE PWA */
+        .install-banner { display: none; background: linear-gradient(135deg, var(--blue), #00C6FF); color: white; border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3); justify-content: space-between; align-items: center; animation: slideIn 0.5s; }
+        .install-banner h4 { margin: 0 0 4px 0; font-size: 16px; font-weight: 800; }
+        .install-banner p { margin: 0; font-size: 12px; opacity: 0.9; }
+        .install-banner button { background: white; color: var(--blue); border: none; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; }
+
+        .gauge-container { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .gauge { width: 150px; height: 150px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: conic-gradient(var(--green) var(--pct), var(--border) 0); position: relative; transition: background 0.5s ease-out; }
+        .gauge::before { content: ""; position: absolute; width: 120px; height: 120px; background: var(--card); border-radius: 50%; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); transition: background 0.3s; }
+        .gauge-content { position: relative; z-index: 1; text-align: center; }
+        .gauge-val { font-size: 26px; font-weight: 800; color: var(--text); }
+        .gauge-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; margin-top: 2px;}
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-box { background: var(--bg); padding: 15px; border-radius: 18px; text-align: center; transition: background 0.3s; }
+        .stat-box span { display: block; font-size: 12px; color: var(--gray); font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-box strong { font-size: 18px; font-weight: 800; color: var(--text); }
+
+        .savings-box { background: rgba(52, 199, 89, 0.1); border: 1px solid var(--green); padding: 12px; border-radius: 16px; text-align: center; margin-top: 15px;}
+        .savings-box p { margin: 0; color: var(--green); font-size: 12px; font-weight: 700; text-transform: uppercase;}
+        .savings-box h3 { margin: 5px 0 0 0; color: var(--green); font-size: 22px; font-weight: 800;}
+
+        label { font-size: 13px; font-weight: 600; color: var(--text-sec); margin: 0 0 8px 4px; display: block; }
+        input:not([type="range"]):not([type="file"]):not([type="checkbox"]):not([type="color"]), select, textarea { width: 100%; background: var(--bg); border: 2px solid transparent; border-radius: 16px; padding: 16px; color: var(--text); font-size: 16px; font-weight: 500; outline: none; margin-bottom: 15px; transition: all 0.2s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        input:not([type="range"]):not([type="file"]):not([type="checkbox"]):not([type="color"]):focus, select:focus, textarea:focus { border-color: var(--blue); background: var(--card); box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1); transform: translateY(-1px); }
+        
+        input[type="color"] { width: 100%; height: 50px; border: none; border-radius: 16px; padding: 5px; background: var(--bg); margin-bottom: 15px; cursor: pointer; }
+        
+        .time-group { display: flex; align-items: center; background: var(--bg); border-radius: 16px; padding: 0 10px; margin-bottom: 15px; border: 2px solid transparent; transition: all 0.2s ease;}
+        .time-group:focus-within { border-color: var(--blue); background: var(--card); transform: translateY(-1px); }
+        .time-group input { border: none; background: transparent; margin-bottom: 0; text-align: right; font-size: 18px; width: 40%; box-shadow: none; padding: 16px 5px;}
+        .time-group span { color: var(--gray); font-size: 15px; font-weight: 600; margin-left: 2px; margin-right: 15px; }
+
+        .btn { width: 100%; min-height: 56px; border-radius: 18px; border: none; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; touch-action: manipulation; }
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3); }
+        .btn-success { background: var(--green); color: #fff; box-shadow: 0 6px 20px rgba(52, 199, 89, 0.3); }
+        .btn-magic { background: var(--magic); color: #fff; box-shadow: 0 6px 20px rgba(175, 82, 222, 0.3); }
+        .btn-accent { background: var(--accent); color: #fff; box-shadow: 0 6px 20px rgba(255, 149, 0, 0.3); }
+        .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--border); }
+        .btn-outline-red { background: transparent; color: var(--red); border: 2px solid var(--red); }
+        
+        .upsell-banner { background: rgba(52, 199, 89, 0.1); border: 2px solid var(--green); padding: 15px; border-radius: 16px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; animation: slideIn 0.3s; }
+        .upsell-banner p { font-size: 13px; font-weight: 600; color: var(--green); margin: 0; }
+        .upsell-btn { background: var(--green); color: white; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
+
+        .step { display: none; animation: slideIn 0.3s; }
+        .step.active { display: block; }
+        .stepper-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 0 10px; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: 0.3s; }
+        .step-dot.active { background: var(--blue); transform: scale(1.4); }
+        .step-dot.done { background: var(--green); }
+
+        .list-container { overflow: hidden; border-radius: 16px; }
+        .swipe-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 20px; background: var(--red); }
+        .dossier-item { position: relative; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: var(--shadow); z-index: 2; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease-out; cursor: pointer; border: 1px solid var(--border); }
+        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: var(--red); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; z-index: 1; border-radius: 0 20px 20px 0; }
+
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 15px 20px 25px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; z-index: 100; transition: background 0.3s; }
+        .nav-bottom .btn { background: var(--bg); color: var(--gray); font-weight: 600; box-shadow: none; border: 1px solid transparent; min-height: 50px; border-radius: 14px;}
+        .nav-bottom .active-tab { background: var(--card); color: var(--blue); box-shadow: var(--shadow); border-color: var(--border); }
+        
+        .draft-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--blue); color: white; padding: 12px 24px; border-radius: 24px; font-size: 13px; font-weight: 700; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4); }
+        .draft-toast.show { opacity: 1; transform: translateX(-50%) translateY(15px); }
+
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-bottom: 15px; }
+        .file-upload-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
+        
+        .counter-badge { background: var(--bg); color: var(--gray); padding: 6px 12px; border-radius: 12px; font-size: 14px; font-weight: 700; border: 1px solid var(--border); }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);}
+        .modal-content { background: var(--card); padding: 30px; border-radius: 28px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 24px 48px rgba(0,0,0,0.2); animation: slideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);}
+        .modal-content h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px;}
+        .modal-content p { color: var(--text-sec); font-size: 15px; margin-bottom: 25px; line-height: 1.5;}
+        
+        /* Survie Card */
+        .survie-card { background: rgba(255, 59, 48, 0.08); border: 2px dashed var(--red); }
+        .survie-card .card-title { color: var(--red); }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="draft-toast">Sauvegardé</div>
+
+    <div id="draft-modal" class="modal-overlay">
+        <div class="modal-content" style="border: 3px solid var(--blue);">
+            <h2>📝 Devis en cours</h2>
+            <p>Vous n'aviez pas terminé un précédent chiffrage. Voulez-vous récupérer vos données exactes ?</p>
+            <div class="grid-2">
+                <button class="btn btn-outline" onclick="rejectDraft()">Ignorer</button>
+                <button class="btn btn-primary" onclick="acceptDraft()">Reprendre</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="onboarding-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="ob-title">Bienvenue dans Margesure 🚀</h2>
+            <p id="ob-text">Votre nouvelle machine à cash. <br><br>Nous allons sécuriser vos marges et générer des devis pros en quelques secondes sur le terrain.</p>
+            <button class="btn btn-primary" onclick="closeOnboarding()">DÉMARRER</button>
+        </div>
+    </div>
+
+    <div id="oubli-modal" class="modal-overlay">
+        <div class="modal-content" style="border: 3px solid var(--accent);">
+            <h2>💡 Attention !</h2>
+            <p id="oubli-text">Vous semblez avoir oublié des éléments importants.</p>
+            <div class="grid-2">
+                <button class="btn btn-outline" onclick="closeOubliModal(false)">Corriger</button>
+                <button class="btn btn-accent" onclick="closeOubliModal(true)">Ignorer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-dashboard" class="view">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1 id="ui-biz-name">MARGESURE</h1>
+                <p style="color: var(--gray); font-weight: 600; margin-top: 5px;">Score de Santé & Synthèse</p>
+            </div>
+
+            <div class="install-banner" id="pwa-install-banner">
+                <div>
+                    <h4>Installer Margesure</h4>
+                    <p>Ajoutez l'app à votre écran d'accueil.</p>
+                </div>
+                <button onclick="installPWA()">Installer</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Marge Nette Globale</div>
+                <div class="gauge-container">
+                    <div class="gauge" id="ui-gauge" style="--pct: 0%;">
+                        <div class="gauge-content">
+                            <div class="gauge-val" id="ui-total-net">0 €</div>
+                            <div class="gauge-label">Bénéfice</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="stat-box"><span>Chiffre d'Affaires</span><strong id="ui-total-ca">0 €</strong></div>
+                    <div class="stat-box"><span>Rentabilité</span><strong id="ui-margin-pct" style="color: var(--text);">0%</strong></div>
+                </div>
+                
+                <div class="savings-box">
+                    <p>💡 Économies récupérées ce mois-ci</p>
+                    <h3 id="ui-monthly-savings">0 €</h3>
+                </div>
+            </div>
+
+            <div class="card" style="background: transparent; box-shadow: none; padding: 0;">
+                <div class="card-title" style="padding: 0 5px;">Historique (10 Derniers - Swipe ⬅️)</div>
+                <div class="list-container" id="dossier-list-form"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-dossier" class="view active">
+        <div class="container">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-weight: 800; font-size: 26px;">Nouveau <span style="color: var(--blue);">Chantier</span></h2>
+                <button class="btn btn-outline" style="width: auto; min-height: 38px; padding: 0 16px; font-size: 13px; border-radius: 12px;" onclick="haptic(15); openDossier(null)">Réinitialiser</button>
+            </div>
+
+            <div class="stepper-nav">
+                <div class="step-dot active" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+                <div class="step-dot" id="dot-3"></div>
+                <div class="step-dot" id="dot-4"></div>
+            </div>
+
+            <div class="step active" id="step-1">
+                <div class="card">
+                    <div class="card-title">Informations Générales</div>
+                    <label>Nom du Client / Projet</label>
+                    <input type="text" id="d-client" placeholder="Ex: Rénovation SDB Dupont" oninput="saveDraft()">
+                    
+                    <label>Adresse du chantier</label>
+                    <input type="text" id="d-adresse" placeholder="Ex: 15 Rue de la Paix, Paris" oninput="saveDraft()">
+
+                    <div class="grid-2">
+                        <div><label>Date</label><input type="date" id="d-date" onchange="saveDraft()"></div>
+                        <div>
+                            <label>Métier</label>
+                            <select id="d-metier" onchange="saveDraft()">
+                                <option value="PLOMBERIE">Plomberie</option><option value="ELECTRICITE">Électricité</option><option value="GENERAL">Général</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="goToStep(2)">SUIVANT : OPÉRATIONNEL ➔</button>
+            </div>
+
+            <div class="step" id="step-2">
+                <div class="card" style="background: rgba(0, 122, 255, 0.05); border: 1px solid var(--blue);">
+                    <div class="card-title" style="color: var(--blue);">⚡ Presets Rapides</div>
+                    <select id="d-preset" onchange="applyPreset()" style="margin-bottom: 0; background: var(--card);">
+                        <option value="">Sélectionnez une prestation type...</option>
+                        <option value="forfait_depannage">Forfait Dépannage Basique</option>
+                        <option value="pose_wc">Installation WC Suspendu</option>
+                        <option value="tirage_ligne">Tirage Ligne Électrique 10m</option>
+                        <option value="peinture_piece">Mise en peinture (Pièce 15m2)</option>
+                    </select>
+                </div>
+
+                <div class="upsell-banner" id="upsell-conso">
+                    <p>💡 Oubli ? Ajouter 5% de consommables ?</p>
+                    <button class="upsell-btn" onclick="applyUpsell()">OUI (+<span id="upsell-val">0</span>€)</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Opérationnel & Coûts cachés</div>
+                    
+                    <label>Achats Matériel TTC (€)</label>
+                    <input type="number" step="0.01" id="d-matos" placeholder="Coût fournisseur" oninput="checkUpsell(); calculateLive(); saveDraft();">
+
+                    <label>Temps Prévu (Main d'œuvre)</label>
+                    <div class="time-group">
+                        <input type="number" id="d-h-prevu-h" placeholder="7" oninput="calculateLive(); saveDraft();"><span>h</span>
+                        <input type="number" id="d-h-prevu-m" placeholder="00" oninput="calculateLive(); saveDraft();"><span>m</span>
+                    </div>
+
+                    <label>Trajet + Installation</label>
+                    <div class="time-group">
+                        <input type="number" id="d-prepa-h" placeholder="0" oninput="calculateLive(); saveDraft();"><span>h</span>
+                        <input type="number" id="d-prepa-m" placeholder="00" oninput="calculateLive(); saveDraft();"><span>m</span>
+                    </div>
+
+                    <label>Distance & Déplacement (€)</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <button class="btn btn-outline" style="min-height: 44px; font-size: 13px; flex: 1; border-color: #3396e6; color: #3396e6;" onclick="openWaze()">🚘 Waze</button>
+                        <button class="btn btn-outline" style="min-height: 44px; font-size: 13px; flex: 1; border-color: #34A853; color: #34A853;" onclick="openGmaps()">🗺️ G.Maps</button>
+                        <button class="btn btn-outline" style="min-height: 44px; font-size: 13px; flex: 1.5;" onclick="autoGPS()">📍 Auto-API</button>
+                    </div>
+                    <div class="grid-2">
+                        <input type="number" step="0.01" id="d-km" placeholder="Frais Km (€)" oninput="calculateLive(); saveDraft();">
+                        <input type="number" step="0.01" id="d-conso" placeholder="Consommables (€)" oninput="calculateLive(); saveDraft();">
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <button class="btn btn-outline" onclick="goToStep(1)">⬅ RETOUR</button>
+                    <button class="btn btn-primary" onclick="attemptGoToStep3()">SUIVANT ➔</button>
+                </div>
+            </div>
+
+            <div class="step" id="step-3">
+                <div class="card" style="background: rgba(175, 82, 222, 0.08); border: 2px dashed var(--magic);">
+                    <div class="card-title" style="color: var(--magic);">✨ Mode Magique</div>
+                    <label style="color: var(--magic);">Bénéfice Net ciblé (€)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="number" step="0.01" id="d-target-net" placeholder="Ex: 300" style="margin-bottom: 0; font-size: 20px; font-weight: 800; color: var(--magic);">
+                        <button class="btn btn-magic" style="width: auto; padding: 0 20px;" onclick="calculateReverse()">Générer</button>
+                    </div>
+                </div>
+
+                <div class="card survie-card">
+                    <div class="card-title">🛡️ Mode Survie (Prix Plancher)</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; color: var(--text-sec); font-weight: 600; width: 60%;">Couvre matos, charges, salaire journalier et frais fixes, sans marge extra.</span>
+                        <strong id="ui-survie-price" style="font-size: 22px; font-weight: 800; color: var(--red);">0 €</strong>
+                    </div>
+                </div>
+
+                <div class="card" style="border: 2px solid var(--blue);">
+                    <div class="card-title" style="color: var(--blue);">Prix de Vente Final</div>
+                    
+                    <label>Devis TTC facturé au client (€)</label>
+                    <input type="number" step="0.01" id="d-ttc" placeholder="Prix final" style="font-size: 28px; font-weight: 800; color: var(--blue);" oninput="calculateLive(); saveDraft();">
+                    
+                    <label>TVA Applicable</label>
+                    <select id="d-tva" onchange="calculateLive(); saveDraft();">
+                        <option value="1.20">20%</option><option value="1.10">10%</option><option value="1.055">5.5%</option><option value="1">0% (AE)</option>
+                    </select>
+
+                    <div class="grid-2" style="margin-top: 15px;">
+                        <div class="stat-box" style="padding: 10px; background: var(--bg);">
+                            <span style="font-size: 10px;">Montant HT</span>
+                            <strong id="ui-ht-calc" style="font-size: 16px;">0 €</strong>
+                        </div>
+                        <div class="stat-box" style="padding: 10px; background: var(--bg);">
+                            <span style="font-size: 10px;" id="ui-tva-label">TVA (20%)</span>
+                            <strong id="ui-tva-calc" style="font-size: 16px;">0 €</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <button class="btn btn-outline" onclick="goToStep(2)">⬅ RETOUR</button>
+                    <button class="btn btn-primary" onclick="goToStep(4)">BILAN ➔</button>
+                </div>
+            </div>
+
+            <div class="step" id="step-4">
+                <div class="card" style="background: var(--text); color: var(--bg);">
+                    <div class="card-title" style="color: var(--gray);">Bilan de Rentabilité</div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span>TVA & URSSAF (<span id="ui-statut-label">AE</span>)</span><span id="r-urssaf" style="color: var(--red);">0 €</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span>Salaire & Frais Pro couverts</span><span id="r-salaire" style="color: var(--blue);">0 €</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; font-size: 18px; font-weight: 800;">
+                        <span>BÉNÉFICE NET PUR</span><span id="r-net" style="color: var(--green);">0 €</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 700; margin: 0;">
+                        Chantier Payé / Encaissé
+                        <input type="checkbox" id="d-paid" style="width: 24px; height: 24px; margin: 0; accent-color: var(--green);" onchange="haptic(10); saveDraft();">
+                    </label>
+                </div>
+
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <button class="btn btn-outline" onclick="sharePDF()">📄 GÉNÉRER PDF</button>
+                    <button class="btn btn-success" onclick="saveDossier()">💾 SAUVEGARDER</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="view-settings" class="view">
+        <div class="container">
+            <h2 style="font-weight: 800; font-size: 26px; margin-bottom: 20px;">Paramètres Moteur</h2>
+            
+            <div class="card" style="background: rgba(0, 122, 255, 0.05); border: 1px solid var(--blue);">
+                <div class="card-title" style="color: var(--blue);">⚡ Packs Métiers Rapides</div>
+                <select id="cfg-pack" onchange="loadProfessionPack()" style="margin-bottom: 0; background: var(--card);">
+                    <option value="">Sélectionnez un profil type...</option>
+                    <option value="plombier">Plombier / Chauffagiste</option>
+                    <option value="elec">Électricien</option>
+                    <option value="peintre">Peintre / Finitions</option>
+                    <option value="menuisier">Menuisier</option>
+                    <option value="multi">Auto-Entrepreneur Multiservices</option>
+                </select>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 20px;">
+                <button class="btn btn-outline" style="font-size: 13px;" onclick="exportJSON()">📥 Sauvegarde Data</button>
+                <button class="btn btn-outline" style="font-size: 13px; color: var(--blue); border-color: var(--blue);" onclick="exportCompta()">📊 Export Comptable Pro</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Personnalisation Marque & PDF</div>
+                <label>Couleur principale du devis</label>
+                <input type="color" id="cfg-color" value="#007AFF">
+                
+                <label>Logo de l'entreprise (Optionnel)</label>
+                <div class="file-upload-wrapper" style="margin-bottom: 5px;">
+                    <button class="btn btn-outline" style="border-style: dashed; pointer-events: none;">🖼 Importer un Logo (.png, .jpg)</button>
+                    <input type="file" id="cfg-logo" accept="image/png, image/jpeg" onchange="importLogo(event)">
+                </div>
+                <img id="logo-preview" style="max-height: 40px; display: none; margin-bottom: 15px; border-radius: 8px; object-fit: contain;">
+            </div>
+
+            <div class="card">
+                <div class="card-title">Google Maps (Auto-API)</div>
+                <label>Clé API Google Maps (Optionnelle)</label>
+                <input type="password" id="cfg-gmaps-key" placeholder="AIzaSy...">
+                <label>Frais facturés au Kilomètre (€)</label>
+                <input type="number" step="0.01" id="cfg-km-cost" placeholder="Ex: 0.60">
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    Légal & Assurance
+                    <span class="counter-badge" title="Compteur de factures">N° <span id="ui-invoice-counter">0</span></span>
+                </div>
+                <label>Nom de l'entreprise</label><input type="text" id="cfg-name">
+                <label>N° SIRET</label><input type="text" id="cfg-siret" placeholder="Obligatoire pour le PDF">
+                <label>Assurance Décennale / Pro</label><input type="text" id="cfg-assu-nom" placeholder="Ex: MAAF PRO (Optionnel)">
+                <label>Couverture Géographique</label><input type="text" id="cfg-assu-zone" placeholder="Ex: France Entière (Optionnel)">
+            </div>
+
+            <div class="card">
+                <div class="card-title">Structure & Charges</div>
+                <label>Statut Juridique</label>
+                <select id="cfg-statut" onchange="updateTaxLabels()">
+                    <option value="AE">Auto-Entrepreneur (Charges sur le CA)</option>
+                    <option value="SOCIETE">Société : SARL/SASU (Charges sur la marge)</option>
+                </select>
+                <label>Adresse de Base (Pour GPS)</label><input type="text" id="cfg-adresse" placeholder="Votre adresse professionnelle">
+                <label id="label-tax">Charges Sociales (%)</label><input type="number" step="0.1" id="cfg-tax">
+                <label>Objectif Salaire / Jour (€)</label><input type="number" id="cfg-sal">
+                <label>Frais Fixes / Jour (€)</label><input type="number" id="cfg-frais-fixes">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">METTRE À JOUR</button>
+        </div>
+    </div>
+
+    <div class="nav-bottom">
+        <button class="btn" id="nav-btn-settings" onclick="switchView('view-settings')" style="flex: 1;">⚙️ Paramètres</button>
+        <button class="btn" id="nav-btn-dashboard" onclick="switchView('view-dashboard')" style="flex: 1;">📊 Tableau</button>
+        <button class="btn active-tab" id="nav-btn-dossier" onclick="switchView('view-dossier')" style="flex: 1.5;">📝 Chantier</button>
+    </div>
+
+    <script>
+        // INIT PWA & SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker enregistré.', reg))
+                    .catch((err) => console.log('Erreur Service Worker:', err));
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Afficher le bouton d'installation personnalisé
+            document.getElementById('pwa-install-banner').style.display = 'flex';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('pwa-install-banner').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        }
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            showToast("Application installée !");
+        });
+
+        // INIT DATA & PRESETS
+        let db = JSON.parse(localStorage.getItem('ms_elite_db')) || [];
+        
+        let savedConfig = JSON.parse(localStorage.getItem('ms_elite_cfg')) || {};
+        let config = {
+            name: savedConfig.name || "MON ENTREPRISE", adresse: savedConfig.adresse || "", taxRate: savedConfig.taxRate || 21.2, 
+            salary: savedConfig.salary || 250, fraisFixes: savedConfig.fraisFixes || 30, siret: savedConfig.siret || "",
+            assuNom: savedConfig.assuNom || "", assuZone: savedConfig.assuZone || "", invoiceCount: savedConfig.invoiceCount || 0, 
+            statut: savedConfig.statut || "AE", 
+            pdfColor: savedConfig.pdfColor || "#007AFF", logo: savedConfig.logo || "", 
+            gmapsKey: savedConfig.gmapsKey || "", kmCost: savedConfig.kmCost || 0.60
+        };
+
+        let savingsData = JSON.parse(localStorage.getItem('ms_elite_savings')) || { month: new Date().getMonth(), amount: 0 };
+        
+        let currentId = null; let currentStep = 1;
+
+        function haptic(duration = 15) { if (navigator.vibrate) navigator.vibrate(duration); }
+
+        function getTime(idBase) {
+            let h = parseInt(document.getElementById(idBase + '-h').value) || 0;
+            let m = parseInt(document.getElementById(idBase + '-m').value) || 0;
+            return h + (m / 60);
+        }
+        
+        function setTime(idBase, decimalHours) {
+            if(!decimalHours) decimalHours = 0;
+            let h = Math.floor(decimalHours);
+            let m = Math.round((decimalHours - h) * 60);
+            document.getElementById(idBase + '-h').value = h !== 0 ? h : "";
+            document.getElementById(idBase + '-m').value = m !== 0 ? m : "";
+        }
+
+        window.onload = () => { 
+            checkFirstVisit();
+            checkMonthlyReset();
+            initApp(); 
+            checkDraft();
+            switchView('view-dossier'); 
+        };
+
+        function checkDraft() {
+            const hasDraft = localStorage.getItem('ms_elite_draft');
+            if(hasDraft && !currentId) {
+                document.getElementById('draft-modal').style.display = 'flex';
+                haptic(20);
+            }
+        }
+        
+        function acceptDraft() {
+            document.getElementById('draft-modal').style.display = 'none';
+            restoreDraft(); 
+            showToast("Brouillon récupéré !");
+        }
+        
+        function rejectDraft() {
+            document.getElementById('draft-modal').style.display = 'none';
+            localStorage.removeItem('ms_elite_draft');
+            openDossier(null);
+        }
+
+        function applyPreset() {
+            const p = document.getElementById('d-preset').value;
+            if(!p) return;
+            haptic(20);
+            
+            let matos = 0, conso = 0, h = 0, m = 0;
+            switch(p) {
+                case 'forfait_depannage': matos = 0; conso = 10; h = 1; m = 0; break;
+                case 'pose_wc': matos = 180; conso = 15; h = 2; m = 30; break;
+                case 'tirage_ligne': matos = 45; conso = 5; h = 1; m = 30; break;
+                case 'peinture_piece': matos = 80; conso = 25; h = 6; m = 0; break;
+            }
+            
+            document.getElementById('d-matos').value = matos || "";
+            document.getElementById('d-conso').value = conso || "";
+            setTime('d-h-prevu', h + (m/60));
+            
+            showToast("Preset appliqué avec succès !");
+            calculateLive(); saveDraft();
+        }
+
+        function checkFirstVisit() {
+            if (!localStorage.getItem('ms_elite_visited')) {
+                document.getElementById('onboarding-modal').style.display = 'flex';
+                localStorage.setItem('ms_elite_visited', 'true');
+            }
+        }
+        function closeOnboarding() { document.getElementById('onboarding-modal').style.display = 'none'; haptic(15); }
+
+        function checkMonthlyReset() {
+            const currentMonth = new Date().getMonth();
+            if(savingsData.month !== currentMonth) {
+                savingsData = { month: currentMonth, amount: 0 };
+                saveSavings();
+            }
+            document.getElementById('ui-monthly-savings').innerText = savingsData.amount + " €";
+        }
+
+        function addSavings(amount) {
+            savingsData.amount += amount;
+            saveSavings();
+            document.getElementById('ui-monthly-savings').innerText = savingsData.amount + " €";
+        }
+        function saveSavings() { localStorage.setItem('ms_elite_savings', JSON.stringify(savingsData)); }
+
+        function loadProfessionPack() {
+            const pack = document.getElementById('cfg-pack').value;
+            if(!pack) return;
+            haptic(20);
+            const packs = {
+                "plombier": { statut: "AE", tax: 21.2, sal: 300, frais: 50, km: 0.8 },
+                "elec": { statut: "AE", tax: 21.2, sal: 280, frais: 40, km: 0.7 },
+                "peintre": { statut: "AE", tax: 21.2, sal: 250, frais: 30, km: 0.6 },
+                "menuisier": { statut: "SOCIETE", tax: 30.0, sal: 250, frais: 80, km: 0.9 },
+                "multi": { statut: "AE", tax: 21.2, sal: 200, frais: 20, km: 0.5 }
+            };
+            const p = packs[pack];
+            document.getElementById('cfg-statut').value = p.statut;
+            document.getElementById('cfg-tax').value = p.tax;
+            document.getElementById('cfg-sal').value = p.sal;
+            document.getElementById('cfg-frais-fixes').value = p.frais;
+            document.getElementById('cfg-km-cost').value = p.km;
+            updateTaxLabels();
+            showToast("Pack " + pack.toUpperCase() + " appliqué !");
+        }
+
+        function goToStep(step) {
+            haptic(10);
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+            for(let i=1; i<=4; i++) {
+                let dot = document.getElementById('dot-'+i);
+                dot.className = 'step-dot';
+                if(i < step) dot.classList.add('done');
+                if(i === step) dot.classList.add('active');
+            }
+            currentStep = step; window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function attemptGoToStep3() {
+            let matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            let hPrevu = getTime('d-h-prevu') || 0;
+            let km = parseFloat(document.getElementById('d-km').value) || 0;
+            
+            let oublis = [];
+            if(matos > 50 && hPrevu === 0) oublis.push("Vous facturez du matériel mais 0h de main d'œuvre.");
+            if(km === 0) oublis.push("Aucun frais de déplacement facturé.");
+            
+            if(oublis.length > 0) {
+                document.getElementById('oubli-text').innerHTML = oublis.join("<br><br>");
+                document.getElementById('oubli-modal').style.display = 'flex';
+                haptic(30);
+            } else {
+                goToStep(3);
+            }
+        }
+
+        function closeOubliModal(ignore) {
+            document.getElementById('oubli-modal').style.display = 'none';
+            if(ignore) goToStep(3);
+        }
+
+        function openWaze() {
+            let dest = document.getElementById('d-adresse').value;
+            if(!dest) return alert("Veuillez saisir une adresse à l'étape 1");
+            window.open(`https://waze.com/ul?q=${encodeURIComponent(dest)}&navigate=yes`, '_blank');
+        }
+
+        function openGmaps() {
+            let dest = document.getElementById('d-adresse').value;
+            if(!dest) return alert("Veuillez saisir une adresse à l'étape 1");
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`, '_blank');
+        }
+
+        function exportJSON() {
+            haptic(20);
+            const data = { db, config };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = `Margesure_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click(); URL.revokeObjectURL(url); showToast("Sauvegarde exportée !");
+        }
+
+        function exportCompta() {
+            haptic(20);
+            if(db.length === 0) { showToast("Aucun dossier à exporter"); return; }
+            let csvContent = "\uFEFFDate;Client;Statut;Montant_HT;TVA_Taux;TVA_Montant;Montant_TTC\n";
+            db.forEach(row => {
+                const tvaRate = parseFloat(row.tva) || 1; 
+                const ht = (parseFloat(row.ttc) || 0) / tvaRate;
+                const tvaAmount = (parseFloat(row.ttc) || 0) - ht; 
+                const status = row.paid ? "Payé" : "En attente";
+                const tvaLabel = tvaRate == 1.2 ? "20%" : (tvaRate == 1.1 ? "10%" : (tvaRate == 1.055 ? "5.5%" : "0%"));
+                
+                csvContent += `"${row.date || 'N/A'}";"${row.client}";"${status}";"${ht.toFixed(2).replace('.',',')}";"${tvaLabel}";"${tvaAmount.toFixed(2).replace('.',',')}";"${parseFloat(row.ttc).toFixed(2).replace('.',',')}"\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Export_Comptable_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); showToast("Export Pro généré !");
+        }
+
+        function importLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                config.logo = e.target.result;
+                const preview = document.getElementById('logo-preview');
+                preview.src = config.logo;
+                preview.style.display = 'block';
+                showToast("Logo importé");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function calculateReverse() {
+            haptic(30);
+            const targetNet = parseFloat(document.getElementById('d-target-net').value) || 0;
+            if (targetNet <= 0) { showToast("Veuillez entrer un objectif net !"); return; }
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1.20;
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const km = parseFloat(document.getElementById('d-km').value) || 0;
+            const hPrevu = getTime('d-h-prevu') || 7; const hPrepa = getTime('d-prepa') || 0;
+            const joursEffectifs = (hPrevu + hPrepa) / 7;
+            const coutSalaire = joursEffectifs * (config.salary || 0);
+            const coutStructure = joursEffectifs * (config.fraisFixes || 0);
+            const taxRate = (config.taxRate || 0) / 100;
+            const fixedCosts = matos + conso + km + coutSalaire + coutStructure;
+
+            let requiredHT = 0;
+            if (config.statut === "AE") { requiredHT = (targetNet + fixedCosts) / (1 - taxRate); } 
+            else { requiredHT = ((targetNet + coutSalaire + coutStructure) / (1 - taxRate)) + (matos + conso + km); }
+
+            const requiredTTC = requiredHT * tvaMod;
+            document.getElementById('d-ttc').value = Math.ceil(requiredTTC);
+            calculateLive(); saveDraft(); showToast("Devis magique généré ! ✨");
+        }
+
+        function calculateLive() {
+            const ttc = parseFloat(document.getElementById('d-ttc').value) || 0;
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1;
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const km = parseFloat(document.getElementById('d-km').value) || 0;
+            
+            const ht = ttc / tvaMod; const tvaAmount = ttc - ht;
+            document.getElementById('ui-ht-calc').innerText = ht.toFixed(2) + " €";
+            document.getElementById('ui-tva-calc').innerText = tvaAmount.toFixed(2) + " €";
+            const tvaText = tvaMod == 1.2 ? "20%" : (tvaMod == 1.1 ? "10%" : (tvaMod == 1.055 ? "5.5%" : "0%"));
+            document.getElementById('ui-tva-label').innerText = "TVA (" + tvaText + ")";
+
+            const hPrevu = getTime('d-h-prevu') || 7; const hPrepa = getTime('d-prepa') || 0;
+            const joursEffectifs = (hPrevu + hPrepa) / 7;
+            const coutSalaire = joursEffectifs * (config.salary || 0); const coutStructure = joursEffectifs * (config.fraisFixes || 0);
+            
+            let urssaf = 0;
+            if (config.statut === "AE") {
+                urssaf = ht * ((config.taxRate || 0) / 100); 
+                document.getElementById('ui-statut-label').innerText = "AE";
+            } else {
+                let margeBrute = ht - (matos + conso + km);
+                urssaf = (margeBrute > 0 ? margeBrute : 0) * ((config.taxRate || 0) / 100); 
+                document.getElementById('ui-statut-label').innerText = "SOCIÉTÉ";
+            }
+            
+            const depensesV = matos + conso + km;
+            const net = ht - depensesV - urssaf - coutSalaire - coutStructure;
+
+            document.getElementById('r-urssaf').innerText = Math.round(urssaf + coutStructure) + " €";
+            document.getElementById('r-salaire').innerText = Math.round(coutSalaire) + " €";
+            const elNet = document.getElementById('r-net');
+            elNet.innerText = Math.round(net) + " €"; elNet.style.color = net >= 0 ? "var(--green)" : "var(--red)";
+
+            let requiredHTSurvie = 0;
+            const taxRate = (config.taxRate || 0) / 100;
+            if (config.statut === "AE") {
+                requiredHTSurvie = (depensesV + coutSalaire + coutStructure) / (1 - taxRate);
+            } else {
+                requiredHTSurvie = ((coutSalaire + coutStructure) / (1 - taxRate)) + depensesV;
+            }
+            const survieTTC = requiredHTSurvie * tvaMod;
+            document.getElementById('ui-survie-price').innerText = Math.ceil(survieTTC) + " €";
+
+            return { ttc, net, taxes: urssaf + coutStructure };
+        }
+
+        function checkUpsell() {
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const banner = document.getElementById('upsell-conso');
+            if (matos > 50 && conso === 0) {
+                document.getElementById('upsell-val').innerText = Math.round(matos * 0.05); banner.style.display = 'flex';
+            } else { banner.style.display = 'none'; }
+        }
+
+        function applyUpsell() {
+            haptic(20); 
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const val = Math.round(matos * 0.05);
+            document.getElementById('d-conso').value = val;
+            document.getElementById('upsell-conso').style.display = 'none'; 
+            addSavings(val);
+            calculateLive(); saveDraft();
+        }
+
+        function loadGoogleMaps(apiKey) {
+            return new Promise((resolve, reject) => {
+                if (window.google && window.google.maps) { resolve(); return; }
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+                script.onload = resolve; script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function autoGPS() {
+            haptic(15);
+            const base = config.adresse || ""; const dest = document.getElementById('d-adresse').value || "";
+            const apiKey = config.gmapsKey || ""; const kmCost = parseFloat(config.kmCost) || 0.60;
+            
+            if (!base || !dest) { alert("Veuillez renseigner l'adresse base et celle du chantier."); return; }
+            if (!apiKey) { alert("API Key manquante. Utilisez les boutons Waze / G.Maps pour un calcul manuel."); return; }
+
+            showToast("Calcul en cours...");
+            try {
+                await loadGoogleMaps(apiKey);
+                const service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix({
+                    origins: [base], destinations: [dest], travelMode: 'DRIVING'
+                }, (response, status) => {
+                    if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+                        const distKm = response.rows[0].elements[0].distance.value / 1000;
+                        const totalCost = Math.round(distKm * kmCost * 2);
+                        document.getElementById('d-km').value = totalCost;
+                        calculateLive(); saveDraft();
+                        showToast(`📍 ${distKm.toFixed(1)} km - Frais calculés : ${totalCost}€ (A/R)`);
+                    } else { alert("Impossible de calculer via l'API."); }
+                });
+            } catch (e) { alert("Erreur API Google Maps."); }
+        }
+
+        function saveDraft() {
+            if(currentId !== null) return;
+            const d = {
+                client: document.getElementById('d-client').value, adresse: document.getElementById('d-adresse').value, date: document.getElementById('d-date').value, metier: document.getElementById('d-metier').value,
+                ttc: document.getElementById('d-ttc').value, tva: document.getElementById('d-tva').value, matos: document.getElementById('d-matos').value,
+                hPrevu: getTime('d-h-prevu'), hPrepa: getTime('d-prepa'), km: document.getElementById('d-km').value, conso: document.getElementById('d-conso').value,
+                paid: document.getElementById('d-paid').checked,
+                preset: document.getElementById('d-preset').value
+            };
+            localStorage.setItem('ms_elite_draft', JSON.stringify(d));
+        }
+
+        function restoreDraft() {
+            const draft = JSON.parse(localStorage.getItem('ms_elite_draft')); if(!draft) return;
+            document.getElementById('d-client').value = draft.client || ""; document.getElementById('d-adresse').value = draft.adresse || "";
+            document.getElementById('d-date').value = draft.date || ""; document.getElementById('d-metier').value = draft.metier || "PLOMBERIE";
+            document.getElementById('d-ttc').value = draft.ttc || ""; document.getElementById('d-tva').value = draft.tva || "1.20"; document.getElementById('d-matos').value = draft.matos || "";
+            setTime('d-h-prevu', draft.hPrevu || 7); setTime('d-prepa', draft.hPrepa || 0);
+            document.getElementById('d-km').value = draft.km || ""; document.getElementById('d-conso').value = draft.conso || "";
+            document.getElementById('d-paid').checked = draft.paid || false;
+            if(draft.preset) document.getElementById('d-preset').value = draft.preset;
+            calculateLive();
+        }
+
+        function saveDossier() {
+            haptic(30);
+            const client = document.getElementById('d-client').value.trim();
+            if (!client) { alert("Nom du client obligatoire"); return; }
+            
+            const res = calculateLive();
+            const data = {
+                id: currentId || Date.now(), client: client, adresse: document.getElementById('d-adresse').value, date: document.getElementById('d-date').value,
+                metier: document.getElementById('d-metier').value, ttc: document.getElementById('d-ttc').value, tva: document.getElementById('d-tva').value, matos: document.getElementById('d-matos').value,
+                hPrevu: getTime('d-h-prevu'), hPrepa: getTime('d-prepa'), km: document.getElementById('d-km').value, conso: document.getElementById('d-conso').value,
+                net: res.net, taxes: res.taxes, paid: document.getElementById('d-paid').checked
+            };
+
+            const idx = db.findIndex(x => x.id === currentId);
+            if(idx > -1) db[idx] = data; else db.unshift(data);
+
+            db = db.slice(0, 10);
+            localStorage.setItem('ms_elite_db', JSON.stringify(db));
+            if(currentId === null) localStorage.removeItem('ms_elite_draft'); 
+            
+            showToast("Dossier Enregistré !");
+            renderDashboard(); openDossier(null); switchView('view-dashboard');
+        }
+
+        let startX = 0; let currentSwipeEl = null;
+
+        function attachSwipeEvents() {
+            document.querySelectorAll('.dossier-item').forEach(el => {
+                el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; currentSwipeEl = el; }, {passive: true});
+                el.addEventListener('touchmove', e => {
+                    if(!currentSwipeEl) return;
+                    let diff = e.touches[0].clientX - startX;
+                    if(diff < 0 && diff > -100) { currentSwipeEl.style.transform = `translateX(${diff}px)`; }
+                }, {passive: true});
+                el.addEventListener('touchend', e => {
+                    if(!currentSwipeEl) return;
+                    let diff = e.changedTouches[0].clientX - startX;
+                    if(diff < -50) {
+                        currentSwipeEl.style.transform = `translateX(-100px)`; haptic(40);
+                        if(confirm("Supprimer ce dossier ?")) deleteDossier(currentSwipeEl.dataset.id);
+                        else currentSwipeEl.style.transform = `translateX(0)`;
+                    } else { currentSwipeEl.style.transform = `translateX(0)`; }
+                    currentSwipeEl = null;
+                });
+            });
+        }
+
+        function deleteDossier(id) {
+            db = db.filter(x => x.id != id);
+            localStorage.setItem('ms_elite_db', JSON.stringify(db)); showToast("Dossier Supprimé"); renderDashboard();
+        }
+
+        function renderDashboard() {
+            let tNet = 0, tCa = 0;
+            const list = document.getElementById('dossier-list-form'); list.innerHTML = "";
+            
+            db.forEach(d => {
+                tNet += d.net || 0; tCa += parseFloat(d.ttc) || 0;
+                list.innerHTML += `
+                <div class="swipe-wrapper">
+                    <div class="delete-btn-bg">Supprimer</div>
+                    <div class="dossier-item" data-id="${d.id}" onclick="if(this.style.transform === 'translateX(-100px)') return; openDossier(${d.id})">
+                        <div><b style="font-size:16px;">${d.client}</b><span style="display:block; font-size:12px; color:var(--gray); margin-top:4px;">${d.date || 'Non daté'} • ${d.paid ? '✅ Encaissé' : '⏳ En cours'}</span></div>
+                        <div style="font-weight:800; font-size:18px; color:${d.net >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.round(d.net || 0)} €</div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('ui-total-net').innerText = Math.round(tNet) + " €";
+            document.getElementById('ui-total-ca').innerText = Math.round(tCa) + " €";
+            let pct = tCa > 0 ? (tNet / tCa) * 100 : 0;
+            document.getElementById('ui-margin-pct').innerText = Math.round(pct) + "%"; 
+            
+            let gaugeColor = 'var(--red)';
+            if (pct >= 30) { gaugeColor = 'var(--green)'; }
+            else if (pct >= 15) { gaugeColor = 'var(--accent)'; }
+            
+            const gaugeEl = document.getElementById('ui-gauge');
+            gaugeEl.style.setProperty('--pct', Math.max(0, pct) + "%");
+            gaugeEl.style.background = `conic-gradient(${gaugeColor} var(--pct), var(--border) 0)`;
+
+            attachSwipeEvents();
+        }
+
+        function openDossier(id) {
+            currentId = id; goToStep(1);
+            if(!id) {
+                document.querySelectorAll('input:not([type="range"]):not([type="file"]):not([type="color"])').forEach(i => { if(i.type !== 'checkbox' && !i.id.startsWith('cfg') && !i.id.startsWith('cat-')) i.value = "" });
+                document.getElementById('d-date').valueAsDate = new Date(); document.getElementById('d-tva').value = "1.20"; document.getElementById('d-paid').checked = false;
+                document.getElementById('d-preset').value = ""; 
+                setTime('d-h-prevu', 7); setTime('d-prepa', 0);
+            } else {
+                const d = db.find(x => x.id == id);
+                if(d) {
+                    document.getElementById('d-client').value = d.client; document.getElementById('d-adresse').value = d.adresse;
+                    document.getElementById('d-date').value = d.date; document.getElementById('d-metier').value = d.metier;
+                    document.getElementById('d-ttc').value = d.ttc; document.getElementById('d-tva').value = d.tva; document.getElementById('d-matos').value = d.matos;
+                    setTime('d-h-prevu', d.hPrevu); setTime('d-prepa', d.hPrepa);
+                    document.getElementById('d-km').value = d.km; document.getElementById('d-conso').value = d.conso; document.getElementById('d-paid').checked = d.paid;
+                }
+            }
+            calculateLive(); switchView('view-dossier');
+        }
+
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r:0,g:122,b:255};
+        }
+
+        async function sharePDF() {
+            haptic(20);
+            const ttc = parseFloat(document.getElementById('d-ttc').value) || 0;
+            if(ttc <= 0) { alert("Chiffrez le devis avant de l'envoyer."); return; }
+
+            showToast("Génération du document...");
+            const doc = new window.jspdf.jsPDF(); 
+            const client = document.getElementById('d-client').value || "Client";
+            const isFacture = document.getElementById('d-paid').checked;
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1;
+            const ht = ttc / tvaMod; const tvaAmount = ttc - ht;
+            const year = new Date().getFullYear();
+            
+            if(isFacture && currentId === null) {
+                config.invoiceCount = (config.invoiceCount || 0) + 1;
+                localStorage.setItem('ms_elite_cfg', JSON.stringify(config));
+                document.getElementById('ui-invoice-counter').innerText = config.invoiceCount;
+            }
+            
+            const typeDoc = isFacture ? "FACTURE" : "DEVIS";
+            const numDoc = `${typeDoc} N° ${year}-${String(config.invoiceCount || 0).padStart(3, '0')}`;
+            const fileName = `${typeDoc}_${client.replace(/\s+/g, '_')}.pdf`;
+
+            const brandColor = hexToRgb(config.pdfColor);
+
+            doc.setFillColor(brandColor.r, brandColor.g, brandColor.b); 
+            doc.rect(0, 0, 210, 10, 'F'); 
+
+            if (config.logo) { doc.addImage(config.logo, 'JPEG', 15, 18, 40, 20, undefined, 'FAST'); } 
+            else { doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(brandColor.r, brandColor.g, brandColor.b); doc.text(config.name.toUpperCase(), 15, 28); }
+
+            doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(80, 80, 80); 
+            doc.text(`${config.adresse || "Adresse non définie"}`, 15, 45);
+            doc.text(`SIRET : ${config.siret || "N/A"}`, 15, 50);
+            
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(0, 0, 0); 
+            doc.text(typeDoc, 120, 30);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(100, 100, 100); 
+            doc.text(numDoc, 120, 37);
+            doc.text(`Date : ${document.getElementById('d-date').value || new Date().toLocaleDateString('fr-FR')}`, 120, 44);
+
+            doc.setFillColor(248, 248, 250); doc.setDrawColor(220, 220, 220); doc.roundedRect(120, 52, 75, 25, 3, 3, 'FD');
+            doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold"); doc.text("DESTINATAIRE :", 125, 60);
+            doc.setFont("helvetica", "normal"); doc.text(client, 125, 66); doc.text(document.getElementById('d-adresse').value, 125, 72);
+            
+            doc.autoTable({
+                startY: 90, 
+                head: [['Désignation', 'Total HT', 'TVA', 'Total TTC']],
+                body: [[
+                    'Prestation ' + document.getElementById('d-metier').value + '\n(Main d\'œuvre, Matériel, Frais annexes)', 
+                    ht.toFixed(2) + ' €', 
+                    tvaMod == 1 ? '0%' : ((tvaMod - 1)*100).toFixed(1) + '%',
+                    ttc.toFixed(2) + ' €'
+                ]],
+                theme: 'grid', 
+                headStyles: { fillColor: [brandColor.r, brandColor.g, brandColor.b], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { cellPadding: 6, fontSize: 10, textColor: [40, 40, 40] }
+            });
+
+            let finalY = doc.lastAutoTable.finalY || 90;
+            
+            doc.setFillColor(248, 248, 250); doc.roundedRect(130, finalY + 10, 65, 30, 2, 2, 'F');
+            doc.setFontSize(10); doc.setTextColor(80, 80, 80);
+            doc.text(`Total HT :`, 135, finalY + 18); doc.text(`${ht.toFixed(2)} €`, 190, finalY + 18, {align: 'right'});
+            doc.text(`TVA :`, 135, finalY + 24); doc.text(`${tvaAmount.toFixed(2)} €`, 190, finalY + 24, {align: 'right'});
+            
+            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold"); 
+            doc.text(`TOTAL TTC :`, 135, finalY + 34); doc.text(`${ttc.toFixed(2)} €`, 190, finalY + 34, {align: 'right'});
+            
+            let legalY = 265;
+            doc.setDrawColor(200, 200, 200); doc.line(15, legalY-5, 195, legalY-5);
+            doc.setFontSize(7); doc.setTextColor(120, 120, 120); doc.setFont("helvetica", "normal");
+            
+            let mentions = [];
+            if(config.assuNom) mentions.push(`Assurance : ${config.assuNom} (${config.assuZone || "Zone non précisée"})`);
+            if(tvaMod == 1) mentions.push("TVA non applicable, art. 293 B du CGI.");
+            mentions.push("Conditions de règlement : Paiement à réception. Escompte pour paiement anticipé : néant.");
+            mentions.push(`Entreprise : ${config.name} | SIRET : ${config.siret}`);
+
+            mentions.forEach((m, i) => { doc.text(m, 105, legalY + (i*4), {align: 'center'}); });
+            
+            const pdfBlob = doc.output('blob');
+            const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file], title: numDoc, text: `Bonjour,\n\nVeuillez trouver ci-joint votre document pour le chantier (${ttc} € TTC).\n\nMerci de votre confiance.\n${config.name}`
+                    });
+                    showToast("Document partagé !");
+                } catch (error) { console.log('Partage annulé:', error); }
+            } else { doc.save(fileName); showToast("PDF Téléchargé !"); }
+        }
+
+        function updateTaxLabels() {
+            const stat = document.getElementById('cfg-statut').value; const lbl = document.getElementById('label-tax');
+            if(stat === "AE") { lbl.innerText = "Charges Sociales sur CA (%)"; } else { lbl.innerText = "Charges/Taxes sur Marge (%)"; }
+        }
+
+        function initApp() {
+            document.getElementById('cfg-name').value = config.name; document.getElementById('cfg-siret').value = config.siret;
+            document.getElementById('cfg-adresse').value = config.adresse; document.getElementById('cfg-tax').value = config.taxRate;
+            document.getElementById('cfg-sal').value = config.salary; document.getElementById('cfg-frais-fixes').value = config.fraisFixes;
+            document.getElementById('cfg-assu-nom').value = config.assuNom; document.getElementById('cfg-assu-zone').value = config.assuZone;
+            document.getElementById('cfg-statut').value = config.statut || "AE";
+            document.getElementById('cfg-color').value = config.pdfColor;
+            document.getElementById('cfg-gmaps-key').value = config.gmapsKey; document.getElementById('cfg-km-cost').value = config.kmCost;
+            document.getElementById('ui-biz-name').innerText = config.name; 
+            document.getElementById('ui-invoice-counter').innerText = config.invoiceCount || 0;
+            
+            if (config.logo) {
+                const preview = document.getElementById('logo-preview');
+                preview.src = config.logo; preview.style.display = 'block';
+            }
+            
+            updateTaxLabels(); renderDashboard();
+        }
+
+        function saveSettings() {
+            haptic(15);
+            config = { 
+                name: document.getElementById('cfg-name').value, siret: document.getElementById('cfg-siret').value, adresse: document.getElementById('cfg-adresse').value, 
+                taxRate: parseFloat(document.getElementById('cfg-tax').value)||0, salary: parseFloat(document.getElementById('cfg-sal').value)||0, fraisFixes: parseFloat(document.getElementById('cfg-frais-fixes').value)||0,
+                assuNom: document.getElementById('cfg-assu-nom').value, assuZone: document.getElementById('cfg-assu-zone').value, invoiceCount: config.invoiceCount || 0,
+                statut: document.getElementById('cfg-statut').value, pdfColor: document.getElementById('cfg-color').value, logo: config.logo,
+                gmapsKey: document.getElementById('cfg-gmaps-key').value, kmCost: parseFloat(document.getElementById('cfg-km-cost').value)||0.60
+            };
+            localStorage.setItem('ms_elite_cfg', JSON.stringify(config)); initApp(); showToast("Paramètres sauvegardés");
+        }
+
+        function switchView(id) {
+            haptic(10);
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-bottom .btn').forEach(b => b.classList.remove('active-tab'));
+            document.querySelector(`[onclick="switchView('${id}')"]`).classList.add('active-tab');
+            window.scrollTo(0,0);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+    </script>
+</body>
+</html>
