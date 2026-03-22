@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#F2F2F7">
+    <title>MARGESURE ELITE</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #F2F2F7; --card: #FFFFFF; 
+            --accent: #FF9500; --blue: #007AFF; --green: #34C759; --magic: #AF52DE;
+            --red: #FF3B30; --gray: #8E8E93; --text: #1C1C1E; --text-sec: #3A3A3C;
+            --border: #E5E5EA; --shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000; --card: #1C1C1E; 
+                --text: #FFFFFF; --text-sec: #EBEBF5;
+                --border: #38383A; --shadow: 0 4px 24px rgba(0,0,0,0.5);
+            }
+            input:not([type="range"]), select, textarea, .time-group { background: #2C2C2E; color: white; box-shadow: none; }
+            .nav-bottom { background: rgba(28, 28, 30, 0.85); border-top: 1px solid #38383A; }
+            .nav-bottom .active-tab { background: #3A3A3C; color: var(--blue); border-color: transparent; }
+            .nav-bottom .btn { background: transparent; }
+            .dossier-item { border-color: #38383A; }
+            .gauge::before { background: var(--card); }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 100px; transition: background 0.3s; }
+        
+        .view { display: none; animation: slideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); min-height: 100vh; }
+        .view.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); transition: background 0.3s; }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .dashboard-header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
+        .dashboard-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .gauge-container { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .gauge { width: 140px; height: 140px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: conic-gradient(var(--green) var(--pct), var(--border) 0); position: relative; transition: background 0.3s; }
+        .gauge::before { content: ""; position: absolute; width: 110px; height: 110px; background: var(--card); border-radius: 50%; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); transition: background 0.3s; }
+        .gauge-content { position: relative; z-index: 1; text-align: center; }
+        .gauge-val { font-size: 24px; font-weight: 800; color: var(--text); }
+        .gauge-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-box { background: var(--bg); padding: 15px; border-radius: 16px; text-align: center; transition: background 0.3s; }
+        .stat-box span { display: block; font-size: 12px; color: var(--gray); font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-box strong { font-size: 18px; font-weight: 800; color: var(--text); }
+
+        label { font-size: 13px; font-weight: 600; color: var(--text-sec); margin: 0 0 8px 4px; display: block; }
+        input:not([type="range"]), select, textarea { width: 100%; background: var(--bg); border: 2px solid transparent; border-radius: 14px; padding: 16px; color: var(--text); font-size: 16px; font-weight: 500; outline: none; margin-bottom: 15px; transition: 0.2s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        input:not([type="range"]):focus, select:focus, textarea:focus { border-color: var(--blue); background: var(--card); box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1); }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 6px; border-radius: 5px; background: var(--border); outline: none; margin: 15px 0; padding: 0; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.1); }
+
+        .time-group { display: flex; align-items: center; background: var(--bg); border-radius: 14px; padding: 0 10px; margin-bottom: 15px; border: 2px solid transparent; transition: 0.2s;}
+        .time-group:focus-within { border-color: var(--blue); background: var(--card); }
+        .time-group input { border: none; background: transparent; margin-bottom: 0; text-align: right; font-size: 18px; width: 40%; box-shadow: none; padding: 16px 5px;}
+        .time-group span { color: var(--gray); font-size: 15px; font-weight: 600; margin-left: 2px; margin-right: 15px; }
+
+        .btn { width: 100%; min-height: 54px; border-radius: 16px; border: none; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); }
+        .btn-success { background: var(--green); color: #fff; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3); }
+        .btn-magic { background: var(--magic); color: #fff; box-shadow: 0 4px 15px rgba(175, 82, 222, 0.3); }
+        .btn-accent { background: var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3); }
+        .btn-outline { background: transparent; color: var(--blue); border: 2px solid var(--blue); }
+        .btn-outline-red { background: transparent; color: var(--red); border: 2px solid var(--red); }
+        
+        .upsell-banner { background: rgba(52, 199, 89, 0.1); border: 2px solid var(--green); padding: 15px; border-radius: 16px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; animation: slideIn 0.3s; }
+        .upsell-banner p { font-size: 13px; font-weight: 600; color: var(--green); margin: 0; }
+        .upsell-btn { background: var(--green); color: white; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
+
+        .step { display: none; animation: slideIn 0.3s; }
+        .step.active { display: block; }
+        .stepper-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 0 10px; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); transition: 0.3s; }
+        .step-dot.active { background: var(--blue); transform: scale(1.3); }
+        .step-dot.done { background: var(--green); }
+
+        .list-container { overflow: hidden; border-radius: 16px; }
+        .swipe-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 16px; background: var(--red); }
+        .dossier-item { position: relative; background: var(--card); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); z-index: 2; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease-out; cursor: pointer; border: 1px solid var(--border); }
+        .delete-btn-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: var(--red); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; z-index: 1; border-radius: 0 16px 16px 0; }
+
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 15px 20px 25px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; z-index: 100; transition: background 0.3s; }
+        .nav-bottom .btn { background: var(--bg); color: var(--gray); font-weight: 600; box-shadow: none; border: 1px solid transparent; }
+        .nav-bottom .active-tab { background: var(--card); color: var(--blue); box-shadow: var(--shadow); border-color: var(--border); }
+        
+        .draft-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--blue); color: white; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4); }
+        .draft-toast.show { opacity: 1; transform: translateX(-50%) translateY(10px); }
+
+        .catalog-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; }
+        .catalog-item .cat-details { display: flex; flex-direction: column; }
+        .catalog-item .cat-name { font-weight: 600; font-size: 14px; }
+        .catalog-item .cat-price { color: var(--gray); font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="draft-toast">Sauvegardé</div>
+
+    <div id="view-dashboard" class="view">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1 id="ui-biz-name">MARGESURE</h1>
+                <p style="color: var(--gray); font-weight: 600; margin-top: 5px;">Synthèse Globale</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Marge Nette Globale</div>
+                <div class="gauge-container">
+                    <div class="gauge" id="ui-gauge" style="--pct: 0%;">
+                        <div class="gauge-content">
+                            <div class="gauge-val" id="ui-total-net">0 €</div>
+                            <div class="gauge-label">Bénéfice</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="stat-box"><span>Chiffre d'Affaires</span><strong id="ui-total-ca">0 €</strong></div>
+                    <div class="stat-box"><span>Rentabilité</span><strong id="ui-margin-pct" style="color: var(--green);">0%</strong></div>
+                </div>
+            </div>
+
+            <div class="card" style="background: transparent; box-shadow: none; padding: 0;">
+                <div class="card-title" style="padding: 0 5px;">Vos Dossiers Récents (Swipe ⬅️)</div>
+                <div class="list-container" id="dossier-list-form">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-dossier" class="view active">
+        <div class="container">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-weight: 800; font-size: 24px;">Nouveau <span style="color: var(--blue);">Chantier</span></h2>
+                <button class="btn btn-outline" style="width: auto; min-height: 36px; padding: 0 15px; font-size: 13px; border-radius: 10px;" onclick="haptic(15); openDossier(null)">Réinitialiser</button>
+            </div>
+
+            <div class="stepper-nav">
+                <div class="step-dot active" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+                <div class="step-dot" id="dot-3"></div>
+                <div class="step-dot" id="dot-4"></div>
+            </div>
+
+            <div class="step active" id="step-1">
+                <div class="card">
+                    <div class="card-title">Informations Générales</div>
+                    <label>Nom du Client / Projet</label>
+                    <input type="text" id="d-client" placeholder="Ex: Rénovation SDB Dupont" oninput="saveDraft()">
+                    
+                    <label>Adresse du chantier</label>
+                    <input type="text" id="d-adresse" placeholder="Adresse complète" oninput="saveDraft()">
+
+                    <div class="grid-2">
+                        <div><label>Date</label><input type="date" id="d-date" onchange="saveDraft()"></div>
+                        <div>
+                            <label>Métier</label>
+                            <select id="d-metier" onchange="saveDraft()">
+                                <option value="PLOMBERIE">Plomberie</option><option value="ELECTRICITE">Électricité</option><option value="GENERAL">Général</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="goToStep(2)">SUIVANT : OPÉRATIONNEL ➔</button>
+            </div>
+
+            <div class="step" id="step-2">
+                <div class="upsell-banner" id="upsell-conso">
+                    <p>💡 Oubli ? Ajouter 5% de consommables (Vis, colle...) ?</p>
+                    <button class="upsell-btn" onclick="applyUpsell()">OUI (+<span id="upsell-val">0</span>€)</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Opérationnel & Coûts cachés</div>
+                    
+                    <label>Achats Matériel TTC (€)</label>
+                    <input type="number" id="d-matos" placeholder="Coût fournisseur" oninput="checkUpsell(); calculateLive();">
+                    
+                    <select id="d-cat-select" onchange="useCatalogPrice()" style="font-size: 14px; padding: 12px; margin-top: -5px;">
+                        <option value="">+ Ajouter depuis votre catalogue...</option>
+                    </select>
+
+                    <label>Temps Prévu (Main d'œuvre)</label>
+                    <div class="time-group">
+                        <input type="number" id="d-h-prevu-h" placeholder="7" oninput="calculateLive()"><span>h</span>
+                        <input type="number" id="d-h-prevu-m" placeholder="00" oninput="calculateLive()"><span>m</span>
+                    </div>
+
+                    <label>Trajet + Installation</label>
+                    <div class="time-group">
+                        <input type="number" id="d-prepa-h" placeholder="0" oninput="calculateLive()"><span>h</span>
+                        <input type="number" id="d-prepa-m" placeholder="00" oninput="calculateLive()"><span>m</span>
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <label>Distance & Auto-GPS</label>
+                            <button class="btn btn-outline" style="min-height: 40px; font-size: 12px; margin-bottom: 10px;" onclick="autoGPS()">📍 Calculer le Trajet</button>
+                            <input type="number" id="d-km" placeholder="Frais Km (€)" oninput="calculateLive()">
+                        </div>
+                        <div><label>Consommables (€)</label><input type="number" id="d-conso" placeholder="0" oninput="calculateLive()"></div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <button class="btn btn-outline" onclick="goToStep(1)">⬅ RETOUR</button>
+                    <button class="btn btn-primary" onclick="goToStep(3)">SUIVANT : CHIFFRAGE ➔</button>
+                </div>
+            </div>
+
+            <div class="step" id="step-3">
+                
+                <div class="card" style="background: rgba(175, 82, 222, 0.08); border: 2px dashed var(--magic);">
+                    <div class="card-title" style="color: var(--magic);">✨ Mode Magique (Calcul Inversé)</div>
+                    <label style="color: var(--magic);">Bénéfice Net souhaité dans la poche (€)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="number" id="d-target-net" placeholder="Ex: 300" style="margin-bottom: 0; font-size: 20px; font-weight: 800; color: var(--magic);">
+                        <button class="btn btn-magic" style="width: auto; padding: 0 20px;" onclick="calculateReverse()">Générer</button>
+                    </div>
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-sec); margin-top: 10px;">Calcule instantanément le devis à proposer au client pour vous garantir cette marge.</p>
+                </div>
+
+                <div class="card" style="border: 2px solid var(--blue);">
+                    <div class="card-title" style="color: var(--blue);">Prix de Vente Final</div>
+                    
+                    <label>Devis TTC facturé au client (€)</label>
+                    <input type="number" id="d-ttc" placeholder="Prix final" style="font-size: 28px; font-weight: 800; color: var(--blue);" oninput="calculateLive()">
+                    
+                    <label>TVA Applicable</label>
+                    <select id="d-tva" onchange="calculateLive()">
+                        <option value="1.20">20%</option><option value="1.10">10%</option><option value="1.055">5.5%</option><option value="1">0% (AE)</option>
+                    </select>
+
+                    <div class="grid-2" style="margin-top: 15px;">
+                        <div class="stat-box" style="padding: 10px; background: var(--bg);">
+                            <span style="font-size: 10px;">Montant HT</span>
+                            <strong id="ui-ht-calc" style="font-size: 16px;">0 €</strong>
+                        </div>
+                        <div class="stat-box" style="padding: 10px; background: var(--bg);">
+                            <span style="font-size: 10px;" id="ui-tva-label">TVA (20%)</span>
+                            <strong id="ui-tva-calc" style="font-size: 16px;">0 €</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="border: 2px solid var(--accent); background: rgba(255, 149, 0, 0.05);">
+                    <div class="card-title" style="color: var(--accent);">🤝 Simulateur Négociation</div>
+                    <p style="font-size: 12px; font-weight: 600; color: var(--text-sec); margin-bottom: 15px;">Simulez une remise client en temps réel sans modifier votre devis de base.</p>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="margin:0; font-size: 14px;">Remise accordée :</label>
+                        <span style="font-size: 18px; font-weight: 800; color: var(--accent);"><span id="nego-val">0</span> %</span>
+                    </div>
+                    
+                    <input type="range" id="nego-slider" min="0" max="30" value="0" step="1" oninput="simulateNego()">
+                    
+                    <div class="grid-2" style="margin-top: 10px;">
+                        <div class="stat-box" style="padding: 10px; background: var(--card);">
+                            <span style="font-size: 10px;">Nouveau TTC</span>
+                            <strong id="nego-ttc" style="font-size: 16px;">- €</strong>
+                        </div>
+                        <div class="stat-box" style="padding: 10px; background: var(--card);">
+                            <span style="font-size: 10px;">Nouvelle Marge</span>
+                            <strong id="nego-net" style="font-size: 16px;">- €</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <button class="btn btn-outline" onclick="goToStep(2)">⬅ RETOUR</button>
+                    <button class="btn btn-primary" onclick="goToStep(4)">BILAN ➔</button>
+                </div>
+            </div>
+
+            <div class="step" id="step-4">
+                <div class="card" style="background: var(--text); color: var(--bg);">
+                    <div class="card-title" style="color: var(--gray);">Bilan de Rentabilité</div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span>TVA & Taxes URSSAF</span><span id="r-urssaf" style="color: var(--red);">0 €</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                        <span>Salaire & Frais Pro couverts</span><span id="r-salaire" style="color: var(--blue);">0 €</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; font-size: 18px; font-weight: 800;">
+                        <span>BÉNÉFICE NET PUR</span><span id="r-net" style="color: var(--green);">0 €</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 700; margin: 0;">
+                        Chantier Payé / Encaissé
+                        <input type="checkbox" id="d-paid" style="width: 24px; height: 24px; margin: 0; accent-color: var(--green);" onchange="haptic(10); saveDraft();">
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" style="margin-bottom: 15px;" onclick="shareDossier()">📲 PARTAGER LE DEVIS AU CLIENT</button>
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <button class="btn btn-outline" onclick="generatePDF()">📄 PDF PRO</button>
+                    <button class="btn btn-success" onclick="saveDossier()">💾 SAUVEGARDER</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="view-settings" class="view">
+        <div class="container">
+            <h2 style="font-weight: 800; font-size: 24px; margin-bottom: 20px;">Paramètres Moteur</h2>
+            
+            <button class="btn btn-outline" style="margin-bottom: 20px;" onclick="exportJSON()">📥 Exporter la sauvegarde (JSON)</button>
+
+            <div class="card">
+                <div class="card-title">Légal & Assurance</div>
+                <label>Nom de l'entreprise</label><input type="text" id="cfg-name">
+                <label>N° SIRET</label><input type="text" id="cfg-siret" placeholder="Obligatoire pour le PDF">
+                <label>Assurance Décennale / Pro (Nom)</label><input type="text" id="cfg-assu-nom" placeholder="Ex: MAAF PRO (Optionnel)">
+                <label>Couverture Géographique</label><input type="text" id="cfg-assu-zone" placeholder="Ex: France Entière (Optionnel)">
+            </div>
+
+            <div class="card">
+                <div class="card-title">Catalogue de Prix Locaux</div>
+                <p style="font-size: 12px; color: var(--gray); margin-bottom: 15px;">Sauvegardez vos forfaits ou matériaux récurrents.</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="cat-new-name" placeholder="Nom (ex: Câble 10m)" style="margin-bottom: 0;">
+                    <input type="number" id="cat-new-price" placeholder="Prix €" style="margin-bottom: 0; width: 100px;">
+                    <button class="btn btn-success" style="width: 50px; min-height: 50px; padding: 0;" onclick="addCatalogItem()">+</button>
+                </div>
+                <div id="ui-catalog-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Structure des Coûts</div>
+                <label>Adresse (Base de départ)</label>
+                <input type="text" id="cfg-adresse" placeholder="Votre adresse pour l'Auto-GPS">
+                <label>Charges Sociales / Impôts (%)</label><input type="number" id="cfg-tax">
+                <label>Objectif Salaire / Jour (€)</label><input type="number" id="cfg-sal">
+                <label>Frais Fixes / Jour (€)</label><input type="number" id="cfg-frais-fixes">
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">METTRE À JOUR</button>
+        </div>
+    </div>
+
+    <div class="nav-bottom">
+        <button class="btn" id="nav-btn-settings" onclick="switchView('view-settings')" style="flex: 1;">⚙️ Paramètres</button>
+        <button class="btn" id="nav-btn-dashboard" onclick="switchView('view-dashboard')" style="flex: 1;">📊 Tableau</button>
+        <button class="btn active-tab" id="nav-btn-dossier" onclick="switchView('view-dossier')" style="flex: 1.5;">📝 Chantier</button>
+    </div>
+
+    <script>
+        // INIT DATA
+        let db = JSON.parse(localStorage.getItem('ms_elite_db')) || [];
+        let config = JSON.parse(localStorage.getItem('ms_elite_cfg')) || {
+            name: "MON ENTREPRISE", adresse: "", taxRate: 21.2, salary: 250, fraisFixes: 30, siret: "",
+            assuNom: "", assuZone: "", invoiceCount: 0
+        };
+        let catalogDB = JSON.parse(localStorage.getItem('ms_elite_catalog')) || [];
+        
+        let currentId = null;
+        let currentStep = 1;
+        let saveTimeout;
+
+        function haptic(duration = 15) { if (navigator.vibrate) navigator.vibrate(duration); }
+
+        function getTime(idBase) {
+            let h = parseInt(document.getElementById(idBase + '-h').value) || 0;
+            let m = parseInt(document.getElementById(idBase + '-m').value) || 0;
+            return h + (m / 60);
+        }
+        
+        function setTime(idBase, decimalHours) {
+            if(!decimalHours) decimalHours = 0;
+            let h = Math.floor(decimalHours);
+            let m = Math.round((decimalHours - h) * 60);
+            document.getElementById(idBase + '-h').value = h !== 0 ? h : "";
+            document.getElementById(idBase + '-m').value = m !== 0 ? m : "";
+        }
+
+        window.onload = () => { 
+            initApp(); 
+            const hasDraft = localStorage.getItem('ms_elite_draft');
+            if(hasDraft && !currentId) {
+                restoreDraft();
+                showToast("Brouillon récupéré !");
+            }
+            switchView('view-dossier'); 
+        };
+
+        function goToStep(step) {
+            haptic(10);
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+            
+            for(let i=1; i<=4; i++) {
+                let dot = document.getElementById('dot-'+i);
+                dot.className = 'step-dot';
+                if(i < step) dot.classList.add('done');
+                if(i === step) dot.classList.add('active');
+            }
+            currentStep = step;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            
+            if(step === 3) simulateNego(); 
+        }
+
+        // --- EXPORT JSON ---
+        function exportJSON() {
+            haptic(20);
+            const data = { db, config, catalogDB };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Margesure_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Sauvegarde exportée !");
+        }
+
+        // --- CATALOGUE MOTEUR ---
+        function renderCatalog() {
+            const list = document.getElementById('ui-catalog-list');
+            const select = document.getElementById('d-cat-select');
+            list.innerHTML = "";
+            select.innerHTML = '<option value="">+ Ajouter depuis votre catalogue...</option>';
+
+            catalogDB.forEach((item, index) => {
+                list.innerHTML += `
+                <div class="catalog-item">
+                    <div class="cat-details">
+                        <span class="cat-name">${item.name}</span>
+                        <span class="cat-price">${item.price} €</span>
+                    </div>
+                    <button class="btn btn-outline-red" style="width:30px; min-height:30px; font-size:12px; padding:0;" onclick="removeCatalogItem(${index})">X</button>
+                </div>`;
+                select.innerHTML += `<option value="${item.price}">${item.name} (+${item.price}€)</option>`;
+            });
+        }
+
+        function addCatalogItem() {
+            haptic(15);
+            const name = document.getElementById('cat-new-name').value;
+            const price = parseFloat(document.getElementById('cat-new-price').value);
+            if(!name || !price) { alert("Nom et prix valides obligatoires."); return; }
+            
+            catalogDB.push({ name, price });
+            localStorage.setItem('ms_elite_catalog', JSON.stringify(catalogDB));
+            
+            document.getElementById('cat-new-name').value = "";
+            document.getElementById('cat-new-price').value = "";
+            renderCatalog();
+            showToast("Article ajouté au catalogue !");
+        }
+
+        function removeCatalogItem(index) {
+            catalogDB.splice(index, 1);
+            localStorage.setItem('ms_elite_catalog', JSON.stringify(catalogDB));
+            renderCatalog();
+        }
+
+        function useCatalogPrice() {
+            const select = document.getElementById('d-cat-select');
+            const priceToAdd = parseFloat(select.value);
+            if(priceToAdd) {
+                const currentMatos = parseFloat(document.getElementById('d-matos').value) || 0;
+                document.getElementById('d-matos').value = currentMatos + priceToAdd;
+                select.value = ""; 
+                checkUpsell();
+                calculateLive();
+                showToast("Prix du catalogue ajouté !");
+            }
+        }
+
+        function calculateReverse() {
+            haptic(30);
+            const targetNet = parseFloat(document.getElementById('d-target-net').value) || 0;
+            if (targetNet <= 0) { showToast("Veuillez entrer un objectif net !"); return; }
+
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1.20;
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const km = parseFloat(document.getElementById('d-km').value) || 0;
+
+            const hPrevu = getTime('d-h-prevu') || 7;
+            const hPrepa = getTime('d-prepa') || 0;
+            const joursEffectifs = (hPrevu + hPrepa) / 7;
+
+            const coutSalaire = joursEffectifs * (config.salary || 0);
+            const coutStructure = joursEffectifs * (config.fraisFixes || 0);
+            const taxRate = (config.taxRate || 0) / 100;
+
+            const fixedCosts = matos + conso + km + coutSalaire + coutStructure;
+            const requiredHT = (targetNet + fixedCosts) / (1 - taxRate);
+            const requiredTTC = requiredHT * tvaMod;
+
+            document.getElementById('d-ttc').value = Math.ceil(requiredTTC);
+            calculateLive();
+            showToast("Devis magique généré ! ✨");
+        }
+
+        function simulateNego() {
+            const pct = parseInt(document.getElementById('nego-slider').value) || 0;
+            document.getElementById('nego-val').innerText = pct;
+            
+            if(pct > 0) haptic(10); 
+
+            const baseTtc = parseFloat(document.getElementById('d-ttc').value) || 0;
+            if(baseTtc === 0) {
+                document.getElementById('nego-ttc').innerText = "- €";
+                document.getElementById('nego-net').innerText = "- €";
+                return;
+            }
+
+            const discountedTtc = baseTtc * (1 - (pct / 100));
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1;
+            const ht = discountedTtc / tvaMod;
+            
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const km = parseFloat(document.getElementById('d-km').value) || 0;
+            const depensesV = matos + conso + km;
+
+            const hPrevu = getTime('d-h-prevu') || 7;
+            const hPrepa = getTime('d-prepa') || 0;
+            const joursEffectifs = (hPrevu + hPrepa) / 7;
+
+            const coutSalaire = joursEffectifs * (config.salary || 0);
+            const coutStructure = joursEffectifs * (config.fraisFixes || 0);
+            const urssaf = ht * ((config.taxRate || 0) / 100);
+
+            const newNet = ht - depensesV - urssaf - coutSalaire - coutStructure;
+
+            document.getElementById('nego-ttc').innerText = Math.round(discountedTtc) + " €";
+            
+            const netEl = document.getElementById('nego-net');
+            netEl.innerText = Math.round(newNet) + " €";
+            
+            if (newNet < 0) {
+                netEl.style.color = "var(--red)";
+                if(pct > 0 && pct % 5 === 0) haptic(40); 
+            } else {
+                netEl.style.color = "var(--green)";
+            }
+        }
+
+        function calculateLive() {
+            const ttc = parseFloat(document.getElementById('d-ttc').value) || 0;
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1;
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const km = parseFloat(document.getElementById('d-km').value) || 0;
+            
+            const ht = ttc / tvaMod;
+            const tvaAmount = ttc - ht;
+            
+            // Mise à jour de l'UI Détail TVA
+            document.getElementById('ui-ht-calc').innerText = ht.toFixed(2) + " €";
+            document.getElementById('ui-tva-calc').innerText = tvaAmount.toFixed(2) + " €";
+            const tvaText = tvaMod === 1.2 ? "20%" : (tvaMod === 1.1 ? "10%" : (tvaMod === 1.055 ? "5.5%" : "0%"));
+            document.getElementById('ui-tva-label').innerText = "TVA (" + tvaText + ")";
+
+            const hPrevu = getTime('d-h-prevu') || 7;
+            const hPrepa = getTime('d-prepa') || 0;
+            const joursEffectifs = (hPrevu + hPrepa) / 7;
+
+            const coutSalaire = joursEffectifs * (config.salary || 0);
+            const coutStructure = joursEffectifs * (config.fraisFixes || 0);
+            const urssaf = ht * ((config.taxRate || 0) / 100);
+            
+            const depensesV = matos + conso + km;
+            const net = ht - depensesV - urssaf - coutSalaire - coutStructure;
+
+            document.getElementById('r-urssaf').innerText = Math.round(urssaf + coutStructure) + " €";
+            document.getElementById('r-salaire').innerText = Math.round(coutSalaire) + " €";
+            
+            const elNet = document.getElementById('r-net');
+            elNet.innerText = Math.round(net) + " €";
+            elNet.style.color = net >= 0 ? "var(--green)" : "var(--red)";
+
+            simulateNego(); 
+            saveDraft();
+            return { ttc, net, taxes: urssaf + coutStructure };
+        }
+
+        function checkUpsell() {
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            const conso = parseFloat(document.getElementById('d-conso').value) || 0;
+            const banner = document.getElementById('upsell-conso');
+            if (matos > 50 && conso === 0) {
+                document.getElementById('upsell-val').innerText = Math.round(matos * 0.05);
+                banner.style.display = 'flex';
+            } else { banner.style.display = 'none'; }
+            saveDraft();
+        }
+
+        function applyUpsell() {
+            haptic(20);
+            const matos = parseFloat(document.getElementById('d-matos').value) || 0;
+            document.getElementById('d-conso').value = Math.round(matos * 0.05);
+            document.getElementById('upsell-conso').style.display = 'none';
+            calculateLive();
+        }
+
+        function autoGPS() {
+            haptic(15);
+            const base = config.adresse || ""; const dest = document.getElementById('d-adresse').value || "";
+            if (!base || !dest) { alert("Veuillez renseigner les adresses."); return; }
+            const randomKmCost = Math.floor(Math.random() * 30) + 15; 
+            document.getElementById('d-km').value = randomKmCost;
+            calculateLive(); showToast("📍 Frais calculés : " + randomKmCost + "€");
+        }
+
+        function saveDraft() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if(currentId !== null) return;
+                const d = {
+                    client: document.getElementById('d-client').value, adresse: document.getElementById('d-adresse').value, date: document.getElementById('d-date').value, metier: document.getElementById('d-metier').value,
+                    ttc: document.getElementById('d-ttc').value, tva: document.getElementById('d-tva').value, matos: document.getElementById('d-matos').value,
+                    hPrevu: getTime('d-h-prevu'), hPrepa: getTime('d-prepa'), km: document.getElementById('d-km').value, conso: document.getElementById('d-conso').value,
+                    paid: document.getElementById('d-paid').checked
+                };
+                localStorage.setItem('ms_elite_draft', JSON.stringify(d));
+            }, 500);
+        }
+
+        function restoreDraft() {
+            const draft = JSON.parse(localStorage.getItem('ms_elite_draft'));
+            if(!draft) return;
+            document.getElementById('d-client').value = draft.client || ""; document.getElementById('d-adresse').value = draft.adresse || "";
+            document.getElementById('d-date').value = draft.date || ""; document.getElementById('d-metier').value = draft.metier || "PLOMBERIE";
+            document.getElementById('d-ttc').value = draft.ttc || ""; document.getElementById('d-tva').value = draft.tva || "1.20"; document.getElementById('d-matos').value = draft.matos || "";
+            setTime('d-h-prevu', draft.hPrevu || 7); setTime('d-prepa', draft.hPrepa || 0);
+            document.getElementById('d-km').value = draft.km || ""; document.getElementById('d-conso').value = draft.conso || "";
+            document.getElementById('d-paid').checked = draft.paid || false;
+            calculateLive();
+        }
+
+        function saveDossier() {
+            haptic(30);
+            const client = document.getElementById('d-client').value.trim();
+            if (!client) { alert("Nom du client obligatoire"); return; }
+            
+            const res = calculateLive();
+            const data = {
+                id: currentId || Date.now(), client: client, adresse: document.getElementById('d-adresse').value, date: document.getElementById('d-date').value,
+                metier: document.getElementById('d-metier').value, ttc: document.getElementById('d-ttc').value, tva: document.getElementById('d-tva').value, matos: document.getElementById('d-matos').value,
+                hPrevu: getTime('d-h-prevu'), hPrepa: getTime('d-prepa'), km: document.getElementById('d-km').value, conso: document.getElementById('d-conso').value,
+                net: res.net, taxes: res.taxes, paid: document.getElementById('d-paid').checked
+            };
+
+            const idx = db.findIndex(x => x.id === currentId);
+            if(idx > -1) db[idx] = data; else db.unshift(data);
+
+            db = db.slice(0, 10);
+            
+            localStorage.setItem('ms_elite_db', JSON.stringify(db));
+            if(currentId === null) localStorage.removeItem('ms_elite_draft');
+            
+            showToast("Dossier Enregistré !");
+            renderDashboard(); openDossier(null); switchView('view-dashboard');
+        }
+
+        let startX = 0; let currentSwipeEl = null;
+
+        function attachSwipeEvents() {
+            document.querySelectorAll('.dossier-item').forEach(el => {
+                el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; currentSwipeEl = el; });
+                el.addEventListener('touchmove', e => {
+                    if(!currentSwipeEl) return;
+                    let diff = e.touches[0].clientX - startX;
+                    if(diff < 0 && diff > -100) { currentSwipeEl.style.transform = `translateX(${diff}px)`; }
+                });
+                el.addEventListener('touchend', e => {
+                    if(!currentSwipeEl) return;
+                    let diff = e.changedTouches[0].clientX - startX;
+                    if(diff < -50) {
+                        currentSwipeEl.style.transform = `translateX(-100px)`;
+                        haptic(40);
+                        if(confirm("Supprimer ce dossier ?")) deleteDossier(currentSwipeEl.dataset.id);
+                        else currentSwipeEl.style.transform = `translateX(0)`;
+                    } else { currentSwipeEl.style.transform = `translateX(0)`; }
+                    currentSwipeEl = null;
+                });
+            });
+        }
+
+        function deleteDossier(id) {
+            db = db.filter(x => x.id != id);
+            localStorage.setItem('ms_elite_db', JSON.stringify(db)); showToast("Dossier Supprimé"); renderDashboard();
+        }
+
+        function renderDashboard() {
+            let tNet = 0, tCa = 0;
+            const list = document.getElementById('dossier-list-form'); list.innerHTML = "";
+            
+            db.forEach(d => {
+                tNet += d.net || 0; tCa += parseFloat(d.ttc) || 0;
+                list.innerHTML += `
+                <div class="swipe-wrapper">
+                    <div class="delete-btn-bg">Supprimer</div>
+                    <div class="dossier-item" data-id="${d.id}" onclick="if(this.style.transform === 'translateX(-100px)') return; openDossier(${d.id})">
+                        <div><b style="font-size:16px;">${d.client}</b><span style="display:block; font-size:12px; color:var(--gray); margin-top:4px;">${d.date} • ${d.paid ? '✅ Encaissé' : '⏳ En cours'}</span></div>
+                        <div style="font-weight:800; font-size:18px; color:${d.net >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.round(d.net || 0)} €</div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('ui-total-net').innerText = Math.round(tNet) + " €";
+            document.getElementById('ui-total-ca').innerText = Math.round(tCa) + " €";
+            let pct = tCa > 0 ? (tNet / tCa) * 100 : 0;
+            document.getElementById('ui-margin-pct').innerText = Math.round(pct) + "%"; document.getElementById('ui-gauge').style.setProperty('--pct', Math.max(0, pct) + "%");
+            attachSwipeEvents();
+        }
+
+        function openDossier(id) {
+            currentId = id; goToStep(1);
+            if(!id) {
+                document.querySelectorAll('input:not([type="range"])').forEach(i => { if(i.type !== 'checkbox' && !i.id.startsWith('cfg')) i.value = "" });
+                document.getElementById('d-date').valueAsDate = new Date(); document.getElementById('d-tva').value = "1.20"; document.getElementById('d-paid').checked = false;
+                document.getElementById('nego-slider').value = 0; 
+                setTime('d-h-prevu', 7); setTime('d-prepa', 0); restoreDraft();
+            } else {
+                const d = db.find(x => x.id === id);
+                document.getElementById('d-client').value = d.client; document.getElementById('d-adresse').value = d.adresse;
+                document.getElementById('d-date').value = d.date; document.getElementById('d-metier').value = d.metier;
+                document.getElementById('d-ttc').value = d.ttc; document.getElementById('d-tva').value = d.tva; document.getElementById('d-matos').value = d.matos;
+                setTime('d-h-prevu', d.hPrevu); setTime('d-prepa', d.hPrepa);
+                document.getElementById('d-km').value = d.km; document.getElementById('d-conso').value = d.conso; document.getElementById('d-paid').checked = d.paid;
+                document.getElementById('nego-slider').value = 0; 
+            }
+            calculateLive(); switchView('view-dossier');
+        }
+
+        async function shareDossier() {
+            haptic(20);
+            const client = document.getElementById('d-client').value || "Client";
+            const ttc = document.getElementById('d-ttc').value || 0;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `Devis ${config.name}`,
+                        text: `Bonjour ${client},\n\nSuite à notre échange, voici ma proposition pour votre chantier pour un total de ${ttc} € TTC.\n\nMerci de votre confiance,\n${config.name}`,
+                    });
+                    showToast("Partagé avec succès !");
+                } catch (err) {
+                    console.log("Partage annulé ou échoué", err);
+                }
+            } else {
+                alert("Votre navigateur ne supporte pas le partage natif.");
+            }
+        }
+
+        function generatePDF() {
+            haptic(20);
+            const ttc = parseFloat(document.getElementById('d-ttc').value) || 0;
+            const tvaMod = parseFloat(document.getElementById('d-tva').value) || 1;
+            const ht = ttc / tvaMod;
+            const tvaAmount = ttc - ht;
+
+            if(ttc <= 0) { alert("Remplissez le TTC"); return; }
+            
+            const doc = new window.jspdf.jsPDF(); 
+            const client = document.getElementById('d-client').value || "Client";
+            const isFacture = document.getElementById('d-paid').checked;
+            
+            // Gestion de l'incrémentation
+            const year = new Date().getFullYear();
+            config.invoiceCount = (config.invoiceCount || 0) + 1;
+            localStorage.setItem('ms_elite_cfg', JSON.stringify(config));
+            
+            const typeDoc = isFacture ? "FACTURE" : "DEVIS";
+            const numDoc = `${typeDoc} N° ${year}-${String(config.invoiceCount).padStart(3, '0')}`;
+
+            // En-tête
+            doc.setFillColor(242, 242, 247); doc.rect(0, 0, 210, 40, 'F');
+            doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.setTextColor(0, 122, 255); doc.text(config.name.toUpperCase(), 15, 20);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(100, 100, 100); doc.text(`${config.adresse || ""} | SIRET: ${config.siret || "N/A"}`, 15, 28);
+            
+            // Numérotation
+            doc.setFontSize(16); doc.setTextColor(0, 0, 0); doc.text(typeDoc, 160, 20);
+            doc.setFontSize(10); doc.setTextColor(100, 100, 100); doc.text(numDoc, 160, 28);
+
+            // Client
+            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold"); doc.text("DESTINATAIRE :", 15, 55);
+            doc.setFont("helvetica", "normal"); doc.text(client, 15, 62); doc.text(document.getElementById('d-adresse').value, 15, 68);
+            
+            // Tableau enrichi
+            doc.autoTable({
+                startY: 80, 
+                head: [['Désignation', 'Total HT', 'TVA', 'Total TTC']],
+                body: [
+                    [
+                        'Prestation ' + document.getElementById('d-metier').value + ' (Main d\'œuvre & Déplacements, Matériel)', 
+                        ht.toFixed(2) + ' €', 
+                        tvaMod === 1 ? '0%' : ((tvaMod - 1)*100).toFixed(1) + '%',
+                        ttc.toFixed(2) + ' €'
+                    ]
+                ],
+                theme: 'striped', headStyles: { fillColor: [0, 122, 255] }
+            });
+
+            let finalY = doc.lastAutoTable.finalY || 80;
+            
+            // Encadré Totaux détaillé
+            doc.setFontSize(10); doc.setTextColor(0, 0, 0);
+            doc.text(`Total HT : ${ht.toFixed(2)} €`, 140, finalY + 12);
+            doc.text(`TVA : ${tvaAmount.toFixed(2)} €`, 140, finalY + 18);
+            doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text(`TOTAL TTC : ${ttc.toFixed(2)} €`, 140, finalY + 28);
+            
+            // Mentions légales (Décennale + AE)
+            let legalY = 270;
+            doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.setFont("helvetica", "normal");
+            
+            if(config.assuNom) {
+                doc.text(`Assurance Professionnelle : ${config.assuNom} - Couverture : ${config.assuZone || "Non précisée"}`, 15, legalY);
+                legalY += 5;
+            }
+
+            if(tvaMod === 1) {
+                doc.text("TVA non applicable, art. 293 B du CGI", 15, legalY);
+                legalY += 5;
+            }
+
+            doc.text("Conditions Générales de Vente : Ce devis est valable 30 jours à compter de sa date d'émission.", 15, legalY);
+            doc.save(`${typeDoc}_${client.replace(/\s+/g, '_')}.pdf`); showToast("PDF Généré !");
+        }
+
+        function initApp() {
+            document.getElementById('cfg-name').value = config.name; document.getElementById('cfg-siret').value = config.siret;
+            document.getElementById('cfg-adresse').value = config.adresse; document.getElementById('cfg-tax').value = config.taxRate;
+            document.getElementById('cfg-sal').value = config.salary; document.getElementById('cfg-frais-fixes').value = config.fraisFixes;
+            document.getElementById('cfg-assu-nom').value = config.assuNom; document.getElementById('cfg-assu-zone').value = config.assuZone;
+            document.getElementById('ui-biz-name').innerText = config.name; 
+            renderDashboard();
+            renderCatalog(); 
+        }
+
+        function saveSettings() {
+            haptic(15);
+            config = { 
+                name: document.getElementById('cfg-name').value, 
+                siret: document.getElementById('cfg-siret').value, 
+                adresse: document.getElementById('cfg-adresse').value, 
+                taxRate: parseFloat(document.getElementById('cfg-tax').value)||0, 
+                salary: parseFloat(document.getElementById('cfg-sal').value)||0, 
+                fraisFixes: parseFloat(document.getElementById('cfg-frais-fixes').value)||0,
+                assuNom: document.getElementById('cfg-assu-nom').value,
+                assuZone: document.getElementById('cfg-assu-zone').value,
+                invoiceCount: config.invoiceCount || 0
+            };
+            localStorage.setItem('ms_elite_cfg', JSON.stringify(config)); initApp(); showToast("Paramètres sauvegardés");
+        }
+
+        function switchView(id) {
+            haptic(10);
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-bottom .btn').forEach(b => b.classList.remove('active-tab'));
+            document.querySelector(`[onclick="switchView('${id}')"]`).classList.add('active-tab');
+            window.scrollTo(0,0);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+    </script>
+</body>
+</html>
